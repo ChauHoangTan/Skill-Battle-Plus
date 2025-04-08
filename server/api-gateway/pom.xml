@@ -7,11 +7,12 @@
 		<groupId>com.example</groupId>
 		<artifactId>microservices-server</artifactId>
 		<version>1.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>api-gateway</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>apigateway</name>
+	<name>api-gateway</name>
 	<description>API Gateway for Online Examination Quiz</description>
 	<url/>
 	<licenses>

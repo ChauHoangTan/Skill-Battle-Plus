@@ -1,0 +1,160 @@
+version: "3.8"
+services:
+  user-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: user-service/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - user-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  user-db:
+    image: postgres:17
+    container_name: user-db
+    restart: always
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+
+  quiz-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: quiz-service/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - quiz-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  quiz-db:
+    image: postgres:17
+    container_name: quiz-db
+    restart: always
+    environment:
+      POSTGRES_DB: quizdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5434:5432"
+    networks:
+      - backend
+
+  question-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: question-service/Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      - question-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  question-db:
+    image: postgres:17
+    container_name: question-db
+    restart: always
+    environment:
+      POSTGRES_DB: questiondb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5435:5432"
+    networks:
+      - backend
+
+  notification-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: notification-service/Dockerfile
+    ports:
+      - "8084:8084"
+    depends_on:
+      - notification-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  notification-db:
+    image: postgres:17
+    container_name: notification-db
+    restart: always
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5436:5432"
+    networks:
+      - backend
+
+  exam-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: exam-service/Dockerfile
+    ports:
+      - "8085:8085"
+    depends_on:
+      - exam-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/examdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  exam-db:
+    image: postgres:17
+    container_name: exam-db
+    restart: always
+    environment:
+      POSTGRES_DB: examdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5437:5432"
+    networks:
+      - backend
+
+  analytics-service:
+    build:
+      context: .           # context là project-root, nơi có pom.xml
+      dockerfile: analytics-service/Dockerfile
+    ports:
+      - "8086:8086"
+    depends_on:
+      - analytics-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-db:5432/analyticsdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+  analytics-db:
+    image: postgres:17
+    container_name: analytics-db
+    restart: always
+    environment:
+      POSTGRES_DB: analyticsdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5438:5432"
+    networks:
+      - backend
+
+networks:
+  backend:

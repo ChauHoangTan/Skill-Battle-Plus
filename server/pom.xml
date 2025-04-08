@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -17,13 +17,13 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>api-gateway</module>
-        <module>user-service</module>
         <module>analytics-service</module>
-        <module>gateway-service</module>
-        <module>notification-service</module>
+        <module>api-gateway</module>
         <module>exam-service</module>
+        <module>notification-service</module>
+        <module>question-service</module>
         <module>quiz-service</module>
+        <module>user-service</module>
     </modules>
 
     <dependencyManagement>
