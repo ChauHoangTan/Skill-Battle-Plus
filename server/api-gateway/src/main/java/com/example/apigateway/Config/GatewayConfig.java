@@ -26,9 +26,18 @@ public class GatewayConfig {
             .route("exam-service", r->r
                     .path("/exams/**")
                     .uri("http://localhost:8085"))
+            .route("battle-service", r->r
+                    .path("/battle/**")
+                    .uri("http://localhost:8086"))
+            .route("auth-service", r->r
+                    .path("/auth/**")
+                    .uri("http://localhost:8087"))
             .route("analytic-service", r->r
                     .path("/analytics/**")
-                    .uri("http://localhost:8086"))
+                    .uri("http://localhost:8088"))
+            .route("admin-service", r->r
+                    .path("/admin/**")
+                    .uri("http://localhost:8089"))
             .build();
     }
 }
