@@ -1,7 +1,6 @@
 package com.example.userservice.Controller;
 
-import com.example.userservice.Model.RequestUserProfile;
-import com.example.userservice.Model.UserProfile;
+import com.example.userservice.Model.UserProfileDTO;
 import com.example.userservice.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,7 @@ public class UserController {
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<String> createProfile(@RequestBody RequestUserProfile userProfile) {
+    public ResponseEntity<String> createProfile(@RequestBody UserProfileDTO userProfile) {
         return userService.createProfile(userProfile);
     }
 }
