@@ -3,13 +3,14 @@ package com.example.authService.Service;
 import com.example.authService.Model.AuthUser;
 import com.example.authService.Repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
+@Component
 public class MyUserDetailsService implements UserDetailsService {
     final private AuthRepository authRepository;
 

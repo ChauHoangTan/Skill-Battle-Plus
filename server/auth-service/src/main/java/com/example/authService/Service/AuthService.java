@@ -7,6 +7,7 @@ import com.example.authService.Repository.AuthRepository;
 import com.example.authService.Utils.JWTUtils;
 import jakarta.validation.Valid;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
-import reactor.util.Logger;
 
 import java.util.Optional;
 
@@ -71,7 +71,7 @@ public class AuthService {
         }
     }
 
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest,
+    public ResponseEntity<String> register(RegisterRequest registerRequest,
                                            BindingResult bindingResult) {
         logger.info("Register starting on account: ", registerRequest.getUsername());
         try {

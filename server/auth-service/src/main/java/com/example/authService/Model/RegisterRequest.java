@@ -16,6 +16,9 @@ public class RegisterRequest {
     @NotBlank(message = "Username can not be blank!")
     private String username;
 
+    @NotBlank(message = "Full name can not be blank!")
+    private String fullName;
+
     @NotBlank(message = "Password can not be blank!")
     @Size(min = 10, message = "Password have to larger than 10 characters!")
     private String password;

@@ -17,7 +17,7 @@ public class UserController {
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<String> createProfile(@RequestBody UserProfileDTO userProfile) {
+    public ResponseEntity<Boolean> createProfile(@RequestBody UserProfileDTO userProfile) {
         return userService.createProfile(userProfile);
     }
 }
