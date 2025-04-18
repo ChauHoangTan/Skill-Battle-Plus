@@ -1,9 +1,7 @@
 package com.example.authService.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,12 +37,14 @@ public class AuthUser {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "auth_user_roles",
             joinColumns = @JoinColumn(name = "auth_user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
-
     )
     private Set<Roles> roles;
+
+    @OneToMany(mappedBy = "authUser", cascade = CascadeType.ALL)
+    private List<RefreshToken> refreshToken;
 }

@@ -29,11 +29,11 @@ public class UserService {
         UserProfile savedUserProfile  = userProfileRepository.save(userProfile);
 
         if(savedUserProfile.getId() != null) {
-            logger.info("Create User Profile Successfully!", userProfile);
+            logger.info("Create User Profile Successfully! {}", userProfile);
             return new ResponseEntity<>(true, HttpStatus.OK);
         }
 
-        logger.error("ERROR While Create UserProfile!!", userProfile);
+        logger.error("ERROR While Create UserProfile!! {}", userProfile);
         return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
     }
 }

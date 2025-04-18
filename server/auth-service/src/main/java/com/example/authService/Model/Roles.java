@@ -1,10 +1,9 @@
 package com.example.authService.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,10 +15,10 @@ public class Roles {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    private int id;
 
     private String role;
 
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany
     private Set<AuthUser> users;
 }

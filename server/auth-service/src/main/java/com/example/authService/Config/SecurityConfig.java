@@ -40,7 +40,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         author -> author
-                        .requestMatchers("/login/**", "/logout/**", "/signup/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().permitAll()
                 )
 //                .cors()
                 .build();

@@ -1,8 +1,10 @@
 package com.example.authService.Controller;
 
-import com.example.authService.Model.AuthUserRequest;
-import com.example.authService.Model.RegisterRequest;
+import com.example.authService.DTO.LoginRequest;
+import com.example.authService.DTO.RegisterRequest;
 import com.example.authService.Service.AuthService;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +23,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthUserRequest authUserRequest) {
-        return authService.login(authUserRequest);
+    public ResponseEntity<?> login(@RequestBody LoginRequest authUserRequest, HttpServletRequest request) {
+        return authService.login(authUserRequest, request.getHeader("User-Agent"));
     }
 
     @PostMapping("/register")

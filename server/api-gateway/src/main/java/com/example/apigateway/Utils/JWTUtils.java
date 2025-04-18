@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class JWTUtils {
 
-    SecretKey secretKey = Keys.hmacShaKeyFor("chauhoangtanchauhoangtan13081308".getBytes());
+    final SecretKey secretKey = Keys.hmacShaKeyFor("chauhoangtanchauhoangtan13081308".getBytes());
 
     public String extractUsername(String token) {
         Claims claims = Jwts

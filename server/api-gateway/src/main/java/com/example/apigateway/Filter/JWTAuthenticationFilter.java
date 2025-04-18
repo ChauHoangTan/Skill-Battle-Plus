@@ -28,9 +28,16 @@ public class JWTAuthenticationFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
+
+        if(path.contains("register") || path.contains("login")) {
+            logger.info("Pass filter API Gateway!");
+            return chain.filter(exchange);
+        }
+
         String token = request.getHeaders().getFirst("Authorization");
 
-        logger.info("API Gateway Filter is starting...", request.getMethod(), request.getURI());
+        logger.info("API Gateway Filter is starting... {}", request.getMethod(), request.getURI());
 
         try {
             if (isAuthMissing(token)){
@@ -39,13 +46,13 @@ public class JWTAuthenticationFilter implements GlobalFilter {
 
             assert token != null;
             token = token.substring(7);
-            logger.debug("Token is: ", token);
+            logger.debug("Token is: {}", token);
 
             if(jwtUtils.validateToken(token)) {
                 String roles = String.join(",", jwtUtils.getRoles(token));
                 String username = jwtUtils.extractUsername(token);
-                logger.debug("Username is: ", username);
-                logger.debug("Roles is: ", roles);
+                logger.debug("Username is: {}", username);
+                logger.debug("Roles is: {}", roles);
 
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-username", username)
@@ -67,7 +74,7 @@ public class JWTAuthenticationFilter implements GlobalFilter {
     }
 
     public Mono<Void> onError(ServerWebExchange exchange, String message) {
-        logger.warn("Error in API GATEWAY Filter: ", message);
+        logger.warn("Error in API GATEWAY Filter: {}", message);
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         return response.setComplete();
