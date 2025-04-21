@@ -1,5 +1,6 @@
 package com.example.authService.Controller;
 
+import com.example.authService.DTO.RefreshTokenRequest;
 import com.example.authService.Service.RefreshTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/tokens")
+@RequestMapping("/auth/tokens")
 public class RefreshTokenController {
     final private RefreshTokenService refreshTokenService;
 
@@ -19,7 +20,7 @@ public class RefreshTokenController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<String> refresh(@RequestBody String refreshToken) {
-        return this.refreshTokenService.refreshAccessToken(refreshToken);
+    public ResponseEntity<String> refresh(@RequestBody RefreshTokenRequest refreshToken) {
+        return this.refreshTokenService.refreshAccessToken(refreshToken.getRefreshToken());
     }
 }

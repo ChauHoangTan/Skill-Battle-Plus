@@ -1,10 +1,9 @@
 package com.example.authService.Service;
 
-import com.example.authService.DTO.LoginRequest;
-import com.example.authService.DTO.LoginResponse;
-import com.example.authService.DTO.RegisterRequest;
-import com.example.authService.DTO.UserProfileDTO;
+import com.example.authService.DTO.*;
+import com.example.authService.Enum.NotificationType;
 import com.example.authService.Model.*;
+import com.example.authService.Producer.NotificationProducer;
 import com.example.authService.Repository.AuthRepository;
 import com.example.authService.Repository.RoleRepository;
 import com.example.authService.Utils.JWTUtils;
@@ -26,26 +25,29 @@ import java.util.*;
 @Service
 public class AuthService {
 
+    final Logger logger = (Logger) LoggerFactory.getLogger(AuthService.class);
     final private AuthRepository authRepository;
     final private RoleRepository roleRepository;
     final private AuthenticationManager authenticationManager;
     final private JWTUtils jwtUtils;
-    final Logger logger = (Logger) LoggerFactory.getLogger(AuthService.class);
     final private WebClient wcUserService;
     final private RefreshTokenService refreshTokenService;
+    final private NotificationProducer notificationProducer;
 
     @Autowired
     public AuthService(AuthRepository authRepository,
                        RoleRepository roleRepository,
                        AuthenticationManager authenticationManager,
                        JWTUtils jwtUtils,
-                       RefreshTokenService refreshTokenService) {
+                       RefreshTokenService refreshTokenService,
+                       NotificationProducer notificationProducer) {
         this.authRepository = authRepository;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         wcUserService = WebClient.builder().baseUrl("http://localhost:8081/users").build();
         this.refreshTokenService = refreshTokenService;
+        this.notificationProducer = notificationProducer;
     }
 
     public ResponseEntity<?> login(LoginRequest authUserRequest, String deviceName) {
@@ -151,28 +153,15 @@ public class AuthService {
             authRepository.save(authUser);
 
             // cal UserService to create User Profile....
-            try {
-                UserProfileDTO userProfileDTO = new UserProfileDTO(
-                        authUser.getId(),
-                        registerRequest.getFullname(),
-                        registerRequest.getEmail());
-
-                this.wcUserService
-                        .post()
-                        .uri("/profile")
-                        .bodyValue(userProfileDTO)
-                        .retrieve()
-                        .bodyToMono(Void.class)
-                        .block();
-            } catch (Exception e) {
-                logger.error("Failed to create profile. Rolling back user: {}", authUser.getUsername(), e);
-                authRepository.deleteById(authUser.getId());
-
+            if(!createUserProfile(authUser,registerRequest)) {
                 return ResponseEntity
                         .status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body("Register failed at profile creation. Rolled back account.");
             }
 
+            // Call event send email to Notification Service via RabbitMQ
+            NotificationMessage notificationMessage = getNotificationMessage(registerRequest);
+            notificationProducer.sendEmailNotification(notificationMessage);
 
             logger.info("Register account success! {}", registerRequest);
             return new ResponseEntity<>(
@@ -181,11 +170,60 @@ public class AuthService {
             );
 
         } catch (Exception e) {
-            logger.error("Register error on account username: {}", registerRequest.getUsername(), e.getMessage(), e);
+            logger.error("Register error on account username: {}", registerRequest.getUsername(), e);
             return new ResponseEntity<>(
                     e.getMessage(),
                     HttpStatus.BAD_REQUEST
             );
         }
+    }
+
+    private boolean createUserProfile(AuthUser authUser, RegisterRequest registerRequest) {
+        try {
+            UserProfileDTO userProfileDTO = new UserProfileDTO(
+                    authUser.getId(),
+                    registerRequest.getFullname(),
+                    registerRequest.getEmail());
+
+            this.wcUserService
+                    .post()
+                    .uri("/profile")
+                    .bodyValue(userProfileDTO)
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to create profile. Rolling back user: {}", authUser.getUsername(), e);
+            authRepository.deleteById(authUser.getId());
+
+            return false;
+        }
+    }
+
+    private NotificationMessage getNotificationMessage(RegisterRequest registerRequest) {
+        String content = """
+            Hi! %s,
+    
+            Welcome to SKILL BATTLE PLUS! 🎉
+    
+            We're excited to have you on board. Get ready to challenge your skills and climb the leaderboard!
+    
+            👉 Start your first challenge now: https://skillbattleplus.com
+    
+            If you have any questions, feel free to contact our support team.
+    
+            Cheers,
+            The Skill Battle Plus Team
+            """.formatted(registerRequest.getFullname());
+
+        return new NotificationMessage(
+                null,
+                registerRequest.getEmail(),
+                "Welcome to SKILL BATTLE PLUS!",
+                content,
+                NotificationType.email.name()
+        );
     }
 }

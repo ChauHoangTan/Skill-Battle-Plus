@@ -74,7 +74,7 @@ public class JWTUtils {
     }
 
     public boolean isExpired(String token) {
-        return expiredDate(token).after(new Date());
+        return expiredDate(token).before(new Date());
     }
 
     public boolean validateToken(String token) {

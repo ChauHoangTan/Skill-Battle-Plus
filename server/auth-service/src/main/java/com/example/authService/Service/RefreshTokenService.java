@@ -55,7 +55,7 @@ public class RefreshTokenService {
             Optional<RefreshToken> storedRefreshToken = refreshTokenRepository.findByToken(refreshToken);
 
             if(storedRefreshToken.isEmpty()) {
-                logger.warn("Refresh Token is invalid!");
+                logger.warn("Refresh Token isn't stored! {}", refreshToken);
                 return new ResponseEntity<>(
                         "Refresh Token is invalid!",
                         HttpStatus.BAD_REQUEST
