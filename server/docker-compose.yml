@@ -1,5 +1,19 @@
 version: "3.8"
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - backend
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
   api-gateway:
     build:
       context: .
@@ -33,6 +47,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   user-db:
     image: postgres:17
@@ -61,6 +77,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   quiz-db:
     image: postgres:17
@@ -89,6 +107,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   question-db:
     image: postgres:17
@@ -117,6 +137,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   notification-db:
     image: postgres:17
@@ -145,6 +167,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/examdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   exam-db:
     image: postgres:17
@@ -173,6 +197,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/battledb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   battle-db:
     image: postgres:17
@@ -201,6 +227,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/authdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   auth-db:
     image: postgres:17
@@ -229,6 +257,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-db:5432/analyticsdb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   analytics-db:
     image: postgres:17
@@ -257,6 +287,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-db:5432/admindb
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
 
   admin-db:
     image: postgres:17
@@ -273,3 +305,6 @@ services:
 
 networks:
   backend:
+
+volumes:
+  rabbitmq_data:

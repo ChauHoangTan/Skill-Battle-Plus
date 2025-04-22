@@ -1,6 +1,7 @@
 package com.example.authService.Producer;
 
 import com.example.authService.DTO.NotificationMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -24,13 +25,15 @@ public class NotificationProducer {
 
     public void sendEmailNotification(NotificationMessage message) {
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonMessage = objectMapper.writeValueAsString(message);
             rabbitTemplate.convertAndSend(
                     NOTIFICATION_EXCHANGE,
                     ROUTING_KEY_EMAIL,
-                    message
+                    jsonMessage
             );
         } catch (Exception e) {
-            logger.error("Send email notification register is error! {}", message);
+            logger.error("Send email notification register is error!", e);
         }
 
     }

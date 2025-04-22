@@ -1,5 +1,6 @@
 package com.example.notificationservice.Consumer;
 
+import com.example.notificationservice.Config.NotificationConfig;
 import com.example.notificationservice.DTO.NotificationMessage;
 import com.example.notificationservice.Service.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,8 +19,9 @@ public class NotificationConsumer {
         this.notificationService = notificationService;
     }
 
-    @RabbitListener(queues = {"email-queue", "push-queue"})
+    @RabbitListener(queues = {NotificationConfig.EMAIL_QUEUE, NotificationConfig.PUSH_QUEUE})
     public void sendEmail(String message) throws JsonProcessingException {
+        System.out.println(message);
         NotificationMessage notificationMessage = objectMapper.readValue(message, NotificationMessage.class);
         notificationService.sendMessage(notificationMessage);
     }

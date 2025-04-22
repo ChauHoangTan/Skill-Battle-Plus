@@ -24,13 +24,13 @@ public class NotificationConfig {
     // Email queue
     @Bean
     public Queue emailQueue() {
-        return new Queue(EMAIL_QUEUE);
+        return new Queue(EMAIL_QUEUE, true);
     }
 
     // Push queue
     @Bean
     public Queue pushQueue() {
-        return new Queue(PUSH_QUEUE);
+        return new Queue(PUSH_QUEUE, true);
     }
 
     // Bindings
