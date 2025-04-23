@@ -14,6 +14,13 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   api-gateway:
     build:
       context: .
@@ -229,6 +236,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: pass
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
 
   auth-db:
     image: postgres:17

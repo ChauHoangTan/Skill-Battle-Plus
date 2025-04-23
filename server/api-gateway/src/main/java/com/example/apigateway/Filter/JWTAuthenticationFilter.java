@@ -30,7 +30,7 @@ public class JWTAuthenticationFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        if(path.contains("register") || path.contains("login")) {
+        if(path.contains("auth")) {
             logger.info("Pass filter API Gateway!");
             return chain.filter(exchange);
         }
@@ -51,12 +51,15 @@ public class JWTAuthenticationFilter implements GlobalFilter {
             if(jwtUtils.validateToken(token)) {
                 String roles = String.join(",", jwtUtils.getRoles(token));
                 String username = jwtUtils.extractUsername(token);
+                String userId = jwtUtils.extractUserId(token);
                 logger.debug("Username is: {}", username);
                 logger.debug("Roles is: {}", roles);
+                logger.debug("UserId is: {}", userId);
 
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-username", username)
                         .header("X-roles", roles)
+                        .header("X-userId", userId)
                         .build();
 
                 return chain.filter(

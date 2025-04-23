@@ -21,6 +21,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
@@ -33,6 +34,7 @@ public class AuthService {
     final private WebClient wcUserService;
     final private RefreshTokenService refreshTokenService;
     final private NotificationProducer notificationProducer;
+    final private OtpService otpService;
 
     @Autowired
     public AuthService(AuthRepository authRepository,
@@ -40,7 +42,8 @@ public class AuthService {
                        AuthenticationManager authenticationManager,
                        JWTUtils jwtUtils,
                        RefreshTokenService refreshTokenService,
-                       NotificationProducer notificationProducer) {
+                       NotificationProducer notificationProducer,
+                       OtpService otpService) {
         this.authRepository = authRepository;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
@@ -48,6 +51,7 @@ public class AuthService {
         wcUserService = WebClient.builder().baseUrl("http://localhost:8081/users").build();
         this.refreshTokenService = refreshTokenService;
         this.notificationProducer = notificationProducer;
+        this.otpService = otpService;
     }
 
     public ResponseEntity<?> login(LoginRequest authUserRequest, String deviceName) {
@@ -102,7 +106,7 @@ public class AuthService {
 
         } catch (BadCredentialsException e) {
             logger.error("Authenticate account Login error! Username: " + authUserRequest.getUsername(), e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -173,7 +177,103 @@ public class AuthService {
             logger.error("Register error on account username: {}", registerRequest.getUsername(), e);
             return new ResponseEntity<>(
                     e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    public ResponseEntity<String> requestPasswordReset(String email) {
+        try {
+            logger.info("Start request password reset! {}", email);
+
+            String otpGenerated = otpService.generateOtp();
+            otpService.saveOtp(email, otpGenerated);
+
+            try {
+                NotificationMessage notificationMessage = new NotificationMessage(
+                        null,
+                        email,
+                        "Skill Battle Plus OTP",
+                        "Your OPT Code is: " + otpGenerated,
+                        NotificationType.email.name()
+                );
+                notificationProducer.sendEmailNotification(notificationMessage);
+            } catch (Exception e) {
+                logger.error("Error send email request reset password!", e);
+                return new ResponseEntity<>(
+                        "Server Error!",
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+
+            logger.info("Request reset password succeed!");
+            return new ResponseEntity<>(
+                    "OTP was sent to your email!",
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            logger.error("Error request reset password!", e);
+            return new ResponseEntity<>(
+                    "Server Error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    public ResponseEntity<String> verifyOtp(String email,String otp) {
+        try {
+            logger.info("Starting verify OTP: {}", otp);
+            if(otpService.validateOtp(email, otp)) {
+                logger.info("Verify OTP Succeed! {}", otp);
+                otpService.deleteOtp(email);
+                return new ResponseEntity<>(
+                        "Verified OTP",
+                        HttpStatus.OK
+                );
+            }
+            logger.warn("OTP invalid! {}", otp);
+            return new ResponseEntity<>(
+                    "OTP invalid!",
                     HttpStatus.BAD_REQUEST
+            );
+        } catch (Exception e) {
+            logger.error("Verify OTP Error!", e);
+            return new ResponseEntity<>(
+                    "Server Error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    public ResponseEntity<String> resendOtp(String email) {
+        return requestPasswordReset(email);
+    }
+
+    public ResponseEntity<String> resetPassword(String email, String newPassword) {
+        logger.info("Starting Reset Password! {}", email);
+        try {
+            Optional<AuthUser> user = authRepository.findByEmail(email);
+            if(user.isEmpty()) {
+                logger.warn("Email is invalid! {}", email);
+                return new ResponseEntity<>(
+                        "Email is invalid!",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            user.get().setPasswordHash(JWTUtils.passwordEncoder().encode(newPassword));
+            authRepository.save(user.get());
+            logger.info("Reset Password Succeed!");
+
+            return new ResponseEntity<>(
+                "Reset Password Succeed!",
+                HttpStatus.OK
+            );
+        } catch (Exception e) {
+            logger.error("Server is error!");
+            return new ResponseEntity<>(
+                    "Server is error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
     }

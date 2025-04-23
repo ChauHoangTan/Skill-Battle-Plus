@@ -22,6 +22,17 @@ public class JWTUtils {
                 .parseClaimsJws(token)
                 .getBody();
 
+        return (String) claims.get("username");
+    }
+
+    public String extractUserId(String token) {
+        Claims claims = Jwts
+                .parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
         return claims.getSubject();
     }
 

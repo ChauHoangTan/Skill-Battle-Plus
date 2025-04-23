@@ -1,7 +1,9 @@
 package com.example.authService.Controller;
 
+import com.example.authService.DTO.EmailRequest;
 import com.example.authService.DTO.LoginRequest;
 import com.example.authService.DTO.RegisterRequest;
+import com.example.authService.DTO.ResetPassword;
 import com.example.authService.Service.AuthService;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,5 +33,25 @@ public class AuthController {
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest,
                                            BindingResult bindingResult) {
         return authService.register(registerRequest, bindingResult);
+    }
+
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<String> requestPasswordReset(@RequestBody EmailRequest emailRequest) {
+        return authService.requestPasswordReset(emailRequest.getEmail());
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody ResetPassword resetPassword) {
+        return authService.verifyOtp(resetPassword.getEmail(), resetPassword.getOtp());
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(@RequestBody EmailRequest emailRequest) {
+        return authService.resendOtp(emailRequest.getEmail());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPassword resetPassword) {
+        return authService.resetPassword(resetPassword.getEmail(), resetPassword.getNewPassword());
     }
 }

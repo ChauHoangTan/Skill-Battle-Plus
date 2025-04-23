@@ -1,9 +1,10 @@
-package com.example.userservice.Model;
+package com.example.userservice.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -13,4 +14,8 @@ public class UserProfileDTO {
     private UUID id;
     private String name;
     private String email;
+    private String avatarURL;
+    private String country;
+    private LocalDate birthday;
+
 }
