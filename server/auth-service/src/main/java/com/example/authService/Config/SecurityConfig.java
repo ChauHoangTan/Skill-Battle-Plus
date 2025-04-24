@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().permitAll()
                 )
+//                .oauth2Login()
 //                .cors()
                 .build();
     }

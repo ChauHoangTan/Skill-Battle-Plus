@@ -1,7 +1,9 @@
 package com.example.userservice.Service;
 
+import com.example.userservice.DTO.UpdateUserProfileDTO;
 import com.example.userservice.Model.UserProfile;
 import com.example.userservice.DTO.UserProfileDTO;
+import com.example.userservice.Model.UserSettings;
 import com.example.userservice.Repository.UserProfileRepository;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -26,13 +28,16 @@ public class UserService {
 
     final private UserProfileRepository userProfileRepository;
     final private FileStorageService fileStorageService;
+    final private UserSettingService userSettingService;
     final Logger logger = (Logger) LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     public UserService(UserProfileRepository userProfileRepository,
-                       FileStorageService fileStorageService) {
+                       FileStorageService fileStorageService,
+                       UserSettingService userSettingService) {
         this.userProfileRepository = userProfileRepository;
         this.fileStorageService = fileStorageService;
+        this.userSettingService = userSettingService;
     }
 
     public ResponseEntity<Boolean> createProfile(UserProfileDTO userProfileDTO) {
@@ -41,20 +46,28 @@ public class UserService {
 
         UserProfile savedUserProfile  = userProfileRepository.save(userProfile);
 
-        if(savedUserProfile.getId() != null) {
+        Optional<UserSettings> userSettings = userSettingService.createUserSettings(userProfileDTO.getId());
+
+        if(savedUserProfile.getId() != null && userSettings.isPresent()) {
             logger.info("Create User Profile Successfully! {}", userProfile);
             return new ResponseEntity<>(true, HttpStatus.OK);
         }
 
         logger.error("ERROR While Create UserProfile!! {}", userProfile);
+
         return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<String> updateAvatar(UUID userId, MultipartFile file) {
+        logger.info("Starting update avatar! {}", userId);
         try {
             Optional<UserProfile> user = userProfileRepository.findById(userId);
             if(user.isEmpty()) {
-                throw new RuntimeException("User does not exist!");
+                logger.warn("User ID is not found! {}", userId);
+                return new ResponseEntity<>(
+                        "User ID is not found!",
+                        HttpStatus.BAD_REQUEST
+                );
             }
             String filename = fileStorageService.store(file);
 
@@ -67,13 +80,20 @@ public class UserService {
 
             user.get().setAvatarURL(url);
             userProfileRepository.save(user.get());
+
+            logger.info("Upload avatar successfully!");
+
             return new ResponseEntity<>(
                     url,
                     HttpStatus.OK
             );
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Upload Avatar is error!", e);
+            return new ResponseEntity<>(
+                    "Server Error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -113,5 +133,29 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ResponseEntity<String> updateProfile(UUID userId, UpdateUserProfileDTO profile) {
+        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
+
+        if(userProfile.isEmpty()) {
+            return new ResponseEntity<>(
+                    "User ID is not found!",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        UserProfile profileStored = userProfile.get();
+        profileStored.setName(profile.getName());
+        profileStored.setCountry(profile.getCountry());
+        profileStored.setEmail(profile.getEmail());
+        profileStored.setBirthday(profile.getBirthday());
+
+        userProfileRepository.save(profileStored);
+
+        return new ResponseEntity<>(
+                "Update User Profile Succeed!",
+                HttpStatus.OK
+        );
     }
 }

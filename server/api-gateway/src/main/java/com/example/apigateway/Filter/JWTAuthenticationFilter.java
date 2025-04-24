@@ -62,6 +62,8 @@ public class JWTAuthenticationFilter implements GlobalFilter {
                         .header("X-userId", userId)
                         .build();
 
+                logger.info("Pass filter API Gateway!");
+
                 return chain.filter(
                         exchange
                                 .mutate()
