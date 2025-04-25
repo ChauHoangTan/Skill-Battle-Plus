@@ -26,12 +26,12 @@ public class UserSettingController {
     }
 
     @PostMapping("")
-    public ResponseEntity<String> createSettings(@RequestHeader("X-userId" ) UUID userId, UserSettingDTO userSettingDTO) {
+    public ResponseEntity<String> createSettings(@RequestHeader("X-userId" ) UUID userId, @RequestBody UserSettingDTO userSettingDTO) {
         return userSettingService.createSettings(userId, userSettingDTO);
     }
 
     @PutMapping("")
-    public ResponseEntity<String> updateSettings(@RequestHeader("X-userId") UUID userId, UserSettingDTO userSettingDTO) {
+    public ResponseEntity<String> updateSettings(@RequestHeader("X-userId") UUID userId, @RequestBody UserSettingDTO userSettingDTO) {
         return userSettingService.updateSettings(userId, userSettingDTO);
     }
 

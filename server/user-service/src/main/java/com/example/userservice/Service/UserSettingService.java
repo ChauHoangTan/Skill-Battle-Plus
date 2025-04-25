@@ -1,6 +1,7 @@
 package com.example.userservice.Service;
 
 import com.example.userservice.DTO.UserSettingDTO;
+import com.example.userservice.Model.UserProfile;
 import com.example.userservice.Model.UserSettings;
 import com.example.userservice.Repository.UserSettingRepository;
 import org.modelmapper.ModelMapper;
@@ -29,9 +30,14 @@ public class UserSettingService {
         this.userSettingRepository = userSettingRepository;
     }
 
-    public Optional<UserSettings> createUserSettings(UUID userId) {
-        UserSettings userSettings = new UserSettings(userId);
+    public Optional<UserSettings> createUserSettings(UserProfile userProfile) {
+        UserSettings userSettings = new UserSettings();
+        userSettings.setUserProfile(userProfile);
         return Optional.of(userSettingRepository.save(userSettings));
+    }
+
+    public void deleteUserSettings(UUID userId) {
+        userSettingRepository.deleteById(userId);
     }
 
     public ResponseEntity<?> getUserSettings(UUID userId) {
@@ -89,6 +95,7 @@ public class UserSettingService {
 
     public ResponseEntity<String> updateSettings(UUID userId, UserSettingDTO userSettingDTO) {
         logger.info("Creating User Settings... {}", userId);
+        logger.info("User Setting DTO: {}", userSettingDTO);
         try {
             UserSettings userSettings = new UserSettings(userId);
             userSettings.setPreferredLanguage(userSettingDTO.getPreferredLanguage());

@@ -20,6 +20,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,13 +48,21 @@ public class UserService {
 
         UserProfile savedUserProfile  = userProfileRepository.save(userProfile);
 
-        Optional<UserSettings> userSettings = userSettingService.createUserSettings(userProfileDTO.getId());
+        if(savedUserProfile.getId() != null) {
+            Optional<UserSettings> userSettings = userSettingService.createUserSettings(savedUserProfile);
 
-        if(savedUserProfile.getId() != null && userSettings.isPresent()) {
+            if(userSettings.isEmpty()) {
+                userProfileRepository.deleteById(userProfileDTO.getId());
+
+                logger.error("ERROR While Create User Settings!! {}", userProfile);
+                return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
             logger.info("Create User Profile Successfully! {}", userProfile);
             return new ResponseEntity<>(true, HttpStatus.OK);
         }
 
+        userSettingService.deleteUserSettings(userProfileDTO.getId());
         logger.error("ERROR While Create UserProfile!! {}", userProfile);
 
         return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
@@ -113,49 +123,67 @@ public class UserService {
     }
 
     public ResponseEntity<Object> getProfile(UUID userId) {
+        logger.info("Starting get profile {}", userId);
         try {
             ModelMapper mapper = new ModelMapper();
             Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
 
             if(userProfile.isEmpty()) {
+                logger.warn("User ID is not exist!");
                 return new ResponseEntity<>(
                         "User ID is not exist!",
                         HttpStatus.BAD_REQUEST
                 );
             }
 
-            UserProfileDTO userProfileDTO = mapper.map(userProfile, UserProfileDTO.class);
+            UserProfileDTO userProfileDTO = mapper.map(userProfile.get(), UserProfileDTO.class);
 
+            logger.info("Get profile succeed!");
             return new ResponseEntity<>(
                     userProfileDTO,
                     HttpStatus.OK
             );
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Get profile is Error!", e);
+            return new ResponseEntity<>(
+                    "Server Error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
     public ResponseEntity<String> updateProfile(UUID userId, UpdateUserProfileDTO profile) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
+        logger.info("Starting Update Profile... {}", userId);
+        logger.info("Update User Profile DTO: {}", profile);
+        try {
+            Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
 
-        if(userProfile.isEmpty()) {
+            if(userProfile.isEmpty()) {
+                return new ResponseEntity<>(
+                        "User ID is not found!",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            UserProfile profileStored = userProfile.get();
+            profileStored.setName(profile.getName());
+            profileStored.setCountry(profile.getCountry());
+            profileStored.setEmail(profile.getEmail());
+            profileStored.setBirthday(profile.getBirthday());
+
+            userProfileRepository.save(profileStored);
+
+            logger.info("Update User Profile Succeed!");
             return new ResponseEntity<>(
-                    "User ID is not found!",
-                    HttpStatus.BAD_REQUEST
+                    "Update User Profile Succeed!",
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            logger.error("Get profile is Error!", e);
+            return new ResponseEntity<>(
+                    "Server Error!",
+                    HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
-
-        UserProfile profileStored = userProfile.get();
-        profileStored.setName(profile.getName());
-        profileStored.setCountry(profile.getCountry());
-        profileStored.setEmail(profile.getEmail());
-        profileStored.setBirthday(profile.getBirthday());
-
-        userProfileRepository.save(profileStored);
-
-        return new ResponseEntity<>(
-                "Update User Profile Succeed!",
-                HttpStatus.OK
-        );
     }
 }

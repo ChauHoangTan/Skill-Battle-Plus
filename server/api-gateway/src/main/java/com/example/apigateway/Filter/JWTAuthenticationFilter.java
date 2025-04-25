@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+
 @Component
 @Order(-1)
 public class JWTAuthenticationFilter implements GlobalFilter {
@@ -30,7 +32,9 @@ public class JWTAuthenticationFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        if(path.contains("auth")) {
+        String[] publicUrls = {"auth", "v3", "swagger"};
+
+        if(Arrays.stream(publicUrls).anyMatch(path::contains)) {
             logger.info("Pass filter API Gateway!");
             return chain.filter(exchange);
         }

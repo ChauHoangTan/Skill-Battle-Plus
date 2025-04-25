@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         author -> author
                                 .requestMatchers("/users/profile").permitAll()
+                                .requestMatchers("/users/v3/**", "/users/webjars/**", "/users/swagger-ui/**", "/users/swagger-ui.html").permitAll()
                                 .anyRequest().authenticated()
                 )
 //                .cors()
