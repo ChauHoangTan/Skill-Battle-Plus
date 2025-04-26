@@ -39,11 +39,17 @@ public class UserProfile {
     @OneToMany(mappedBy = "userProfile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Set<UserProgress> userProgress;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Set<UserFriend> userSendRequest;
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    private Set<FriendRequest> sentRequests;
 
-    @OneToMany(mappedBy = "friend", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private Set<UserFriend> friendSendRequest;
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
+    private Set<FriendRequest> receivedRequests;
+
+    @OneToMany(mappedBy = "friendsSent", fetch = FetchType.LAZY)
+    private Set<Friend> friendsSentRequests;
+
+    @OneToMany(mappedBy = "friendsReceived", fetch = FetchType.LAZY)
+    private Set<Friend> friendsReceivedRequests;
 
     @PrePersist
     private void onCreate() {
