@@ -1,5 +1,7 @@
 package com.example.userservice.Service;
 
+import com.example.userservice.DTO.FriendProfileDTO;
+import com.example.userservice.DTO.PendingRequestDTO;
 import com.example.userservice.Enum.FriendRequestStatus;
 import com.example.userservice.Model.Friend;
 import com.example.userservice.Model.FriendRequest;
@@ -51,9 +53,25 @@ public class UserFriendService {
             Set<Friend> listFriendSentRequest = user.get().getFriendsSentRequests();
             Set<Friend> listFriendReceivedRequest = user.get().getFriendsReceivedRequests();
 
-            Set<UserProfile> friends = new HashSet<>();
-            listFriendSentRequest.forEach(friend -> friends.add(friend.getFriendsReceived()));
-            listFriendReceivedRequest.forEach(friend -> friends.add(friend.getFriendsSent()));
+            Set<FriendProfileDTO> friends = new HashSet<>();
+            listFriendSentRequest.forEach(friend -> friends.add(
+                    new FriendProfileDTO(
+                            friend.getId(),
+                            friend.getFriendsReceived().getId(),
+                            friend.getFriendsReceived().getName(),
+                            friend.getFriendsReceived().getAvatarURL(),
+                            friend.getCreatedAt()
+                    )
+            ));
+            listFriendReceivedRequest.forEach(friend -> friends.add(
+                    new FriendProfileDTO(
+                            friend.getId(),
+                            friend.getFriendsSent().getId(),
+                            friend.getFriendsSent().getName(),
+                            friend.getFriendsSent().getAvatarURL(),
+                            friend.getCreatedAt()
+                    ))
+            );
 
             logger.info("Get friends succeed!");
             return new ResponseEntity<>(
@@ -84,9 +102,17 @@ public class UserFriendService {
             }
 
             Set<FriendRequest> userRequests = userFriendRequestRepository.findFriendRequestByReceiverId(userId);
-            Set<UserProfile> userProfiles = new HashSet<>();
+            Set<PendingRequestDTO> userProfiles = new HashSet<>();
             userRequests.forEach(
-                    userRequest -> userProfiles.add(userRequest.getSender())
+                    userRequest -> userProfiles.add(
+                            new PendingRequestDTO(
+                                    userRequest.getId(),
+                                    userRequest.getSender().getId(),
+                                    userRequest.getSender().getName(),
+                                    userRequest.getSender().getAvatarURL(),
+                                    userRequest.getSentAt()
+                            )
+                    )
             );
 
             logger.info("Get request succeed! {}", userId);
@@ -163,6 +189,15 @@ public class UserFriendService {
             userFriendRequestRepository.save(friendRequest.get());
 
             logger.info("Reject request succeed!");
+
+            if(status.equals(FriendRequestStatus.ACCEPTED)) {
+                Friend friend = new Friend();
+                friend.setFriendsSent(friendRequest.get().getSender());
+                friend.setFriendsReceived(friendRequest.get().getReceiver());
+
+                userFriendRepository.save(friend);
+            }
+
             return new ResponseEntity<>(
                     "Request succeed!",
                     HttpStatus.OK
@@ -225,6 +260,17 @@ public class UserFriendService {
             }
 
             userFriendRepository.deleteById(friend.get().getId());
+            Optional<FriendRequest> friendRequest = userFriendRequestRepository.findBySenderIdAndReceiverIdAndStatus(
+                        friend.get().getFriendsSent().getId(),
+                        friend.get().getFriendsReceived().getId(),
+                        FriendRequestStatus.ACCEPTED
+                    );
+            if(friendRequest.isPresent()) {
+                FriendRequest changeFriendRequest = friendRequest.get();
+                changeFriendRequest.setStatus(FriendRequestStatus.DELETED);
+                userFriendRequestRepository.save(changeFriendRequest);
+            }
+
             return new ResponseEntity<>(
                     "Remove friend succeed!",
                     HttpStatus.OK

@@ -32,51 +32,50 @@ public class JWTAuthenticationFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        String[] publicUrls = {"auth", "v3", "swagger"};
-
-        if(Arrays.stream(publicUrls).anyMatch(path::contains)) {
-            logger.info("Pass filter API Gateway!");
-            return chain.filter(exchange);
-        }
-
         String token = request.getHeaders().getFirst("Authorization");
 
         logger.info("API Gateway Filter is starting... {}", request.getMethod(), request.getURI());
 
         try {
-            if (isAuthMissing(token)){
-                return onError(exchange, "Is missing Token!");
+            if (!isAuthMissing(token)){
+                assert token != null;
+                token = token.substring(7);
+                logger.info("Token is: {}", token);
+
+                if(jwtUtils.validateToken(token)) {
+                    String roles = String.join(",", jwtUtils.getRoles(token));
+                    String username = jwtUtils.extractUsername(token);
+                    String userId = jwtUtils.extractUserId(token);
+                    logger.info("Username is: {}", username);
+                    logger.info("Roles is: {}", roles);
+                    logger.info("UserId is: {}", userId);
+
+                    ServerHttpRequest mutatedRequest = request.mutate()
+                            .header("X-username", username)
+                            .header("X-roles", roles)
+                            .header("X-userId", userId)
+                            .build();
+
+                    logger.info("Pass token API Gateway!");
+
+                    ServerWebExchange mutatedExchange = exchange.mutate()
+                            .request(mutatedRequest)
+                            .build();
+                    return chain.filter(mutatedExchange);
+                }
             }
 
-            assert token != null;
-            token = token.substring(7);
-            logger.debug("Token is: {}", token);
+            String[] publicUrls = {"auth", "v3", "swagger"};
 
-            if(jwtUtils.validateToken(token)) {
-                String roles = String.join(",", jwtUtils.getRoles(token));
-                String username = jwtUtils.extractUsername(token);
-                String userId = jwtUtils.extractUserId(token);
-                logger.debug("Username is: {}", username);
-                logger.debug("Roles is: {}", roles);
-                logger.debug("UserId is: {}", userId);
-
-                ServerHttpRequest mutatedRequest = request.mutate()
-                        .header("X-username", username)
-                        .header("X-roles", roles)
-                        .header("X-userId", userId)
-                        .build();
-
+            if(Arrays.stream(publicUrls).anyMatch(path::contains)) {
                 logger.info("Pass filter API Gateway!");
-
-                return chain.filter(
-                        exchange
-                                .mutate()
-                                .request(mutatedRequest)
-                                .build());
+                return chain.filter(exchange);
             }
 
+            logger.error("Can not authorize!");
             return onError(exchange, "Can not authorize!");
         }catch (Exception e) {
+            logger.error("Error Filter API Gateway!");
             return onError(exchange, e.getMessage());
         }
 

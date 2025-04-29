@@ -1,5 +1,5 @@
 package com.example.userservice.Enum;
 
 public enum FriendRequestStatus {
-    PENDING, ACCEPTED, REJECTED
+    PENDING, ACCEPTED, REJECTED, DELETED
 }

@@ -51,7 +51,7 @@ public class UserFriendController {
         return userFriendService.cancelRequest(requestId);
     }
 
-    @DeleteMapping("/requests/{friendId}")
+    @DeleteMapping("/{friendId}")
     public ResponseEntity<String> removeFriend(@PathVariable UUID friendId) {
         return userFriendService.removeFriend(friendId);
     }
