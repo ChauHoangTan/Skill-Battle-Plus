@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,19 +85,23 @@ public class QuestionService {
         }
     }
 
-    public ResponseEntity<ApiResponse<Question>> create(UUID quizId, QuestionDTO questionDTO) {
+    public ResponseEntity<ApiResponse<Question>> create(QuestionDTO questionDTO) {
         try {
-            List<AnswerOption> answerOptions = questionDTO.getOptions()
-                    .stream()
-                    .map(optionDTO -> mapper.map(optionDTO, AnswerOption.class))
-                    .toList();
+            Question question = new Question();
+            question.setContent(questionDTO.getContent());
+            question.setQuestionType(questionDTO.getQuestionType());
 
-            Question question = Question.builder()
-                    .quizId(questionDTO.getQuizId())
-                    .content(questionDTO.getContent())
-                    .questionType(questionDTO.getQuestionType())
-                    .options(answerOptions)
-                    .build();
+            List<AnswerOption> answerOptions = questionDTO.getOptions().stream()
+                    .map(dto -> {
+                        AnswerOption option = new AnswerOption();
+                        option.setText(dto.getText());
+                        option.setIsCorrect(dto.getIsCorrect());
+                        option.setQuestion(question); // Quan trọng
+                        return option;
+                    })
+                    .collect(Collectors.toList());
+
+            question.setOptions(answerOptions);
 
             Question questionSaved = questionRepository.save(question);
 
@@ -128,25 +133,31 @@ public class QuestionService {
 
     public ResponseEntity<ApiResponse<Question>> update(QuestionDTO questionDTO) {
         try {
-            List<AnswerOption> answerOptions = questionDTO.getOptions()
-                    .stream()
-                    .map(AnswerOptionDTO -> mapper.map(AnswerOptionDTO, AnswerOption.class))
-                    .toList();
+            Question question = new Question();
+            question.setId(questionDTO.getId());
+            question.setQuizId(questionDTO.getQuizId());
+            question.setContent(questionDTO.getContent());
+            question.setQuestionType(questionDTO.getQuestionType());
 
-            Question question = Question.builder()
-                    .id(questionDTO.getId())
-                    .quizId(questionDTO.getQuizId())
-                    .content(questionDTO.getContent())
-                    .questionType(questionDTO.getQuestionType())
-                    .options(answerOptions)
-                    .build();
+            List<AnswerOption> answerOptions = questionDTO.getOptions().stream()
+                    .map(dto -> {
+                        AnswerOption option = new AnswerOption();
+                        option.setId(dto.getId());
+                        option.setText(dto.getText());
+                        option.setIsCorrect(dto.getIsCorrect());
+                        option.setQuestion(question); // Quan trọng
+                        return option;
+                    })
+                    .collect(Collectors.toList());
 
-            questionRepository.save(question);
+            question.setOptions(answerOptions);
+
+            Question questionSaved = questionRepository.save(question);
 
             ApiResponse<Question> response = new ApiResponse<>(
                     true,
                     "Updating question success!",
-                    question,
+                    questionSaved,
                     HttpStatus.OK
             );
 

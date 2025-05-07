@@ -2,25 +2,23 @@ package com.example.questionservice.Model;
 
 import com.example.questionservice.Enum.QuestionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Entity
+@Setter
+@Getter
 public class Question {
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
     private UUID quizId;
 
     @Column(columnDefinition = "TEXT", nullable = false)

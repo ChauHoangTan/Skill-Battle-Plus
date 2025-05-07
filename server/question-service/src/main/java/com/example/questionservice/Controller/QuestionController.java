@@ -30,8 +30,8 @@ public class QuestionController {
     }
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<Question>> create(UUID quizId, @RequestBody @Valid QuestionDTO questionDTO) {
-        return questionService.create(quizId, questionDTO);
+    public ResponseEntity<ApiResponse<Question>> create(@RequestBody @Valid QuestionDTO questionDTO) {
+        return questionService.create(questionDTO);
     }
 
     @PutMapping("/{id}")

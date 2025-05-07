@@ -1,4 +1,4 @@
-package com.example.userservice.Filter;
+package com.example.questionservice.Filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,9 +25,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String roles = request.getHeader("X-roles");
         log.info("doFilterInternal username: {}", username);
         log.info("doFilterInternal roles: {}", roles);
-
-        String authHeader = request.getHeader("Authorization");
-        log.info("Headers: {}", authHeader);
 
         if (username != null && roles != null) {
             List<SimpleGrantedAuthority> authorities = Arrays.stream(roles.split(","))

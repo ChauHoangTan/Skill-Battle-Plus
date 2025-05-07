@@ -33,6 +33,8 @@ public class JWTAuthenticationFilter implements GlobalFilter {
         String path = request.getURI().getPath();
 
         String token = request.getHeaders().getFirst("Authorization");
+        logger.info("Headers: {}", request.getHeaders());
+        logger.info("JWT Token: {}", token);
 
         logger.info("API Gateway Filter is starting... {}", request.getMethod(), request.getURI());
 
@@ -62,8 +64,8 @@ public class JWTAuthenticationFilter implements GlobalFilter {
                             .request(mutatedRequest)
                             .build();
                     return chain.filter(mutatedExchange);
-                }
-            }
+                } else logger.warn("JWT Token is not valid!");
+            } else logger.warn("JWT Token is missing!");
 
             String[] publicUrls = {"auth", "v3", "swagger"};
 
