@@ -36,17 +36,13 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        author -> author
-                                .requestMatchers(
-                                        "/swagger-ui/**",
-                                        "/quizzes/v3/**","/v3/**",
-                                        "/quizzes/webjars/**",
-                                        "/quizzes/swagger-ui/**",
-                                        "/quizzes/swagger-ui.html").permitAll()
-                                .requestMatchers(
-                                        "/quizzes/"
-                                ).hasRole("USER")
-                                .anyRequest().authenticated()
+                author -> author
+                        .requestMatchers(
+                                "/quizzes/swagger-ui/**",
+                                "/quizzes/v3/api-docs/**",
+                                "/quizzes/webjars/**").permitAll()
+                        .requestMatchers("/quizzes/**").hasRole("USER")
+                        .anyRequest().authenticated()
                 )
 //                .cors()
                 .addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

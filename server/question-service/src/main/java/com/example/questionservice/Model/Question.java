@@ -1,6 +1,7 @@
 package com.example.questionservice.Model;
 
 import com.example.questionservice.Enum.QuestionType;
+import com.example.questionservice.Enum.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,16 @@ public class Question {
     @Column(nullable = false)
     private QuestionType questionType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Visibility visibility;
+
+    @ManyToMany
+    private List<Tag> tags;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<AnswerOption> options = new ArrayList<>();
+
+    @Column(nullable = false)
+    private UUID createdBy;
 }

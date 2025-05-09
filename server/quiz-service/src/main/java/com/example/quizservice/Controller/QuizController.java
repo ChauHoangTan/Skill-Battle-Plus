@@ -7,6 +7,7 @@ import com.example.quizservice.Service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,12 @@ public class QuizController {
     public ResponseEntity<ApiResponse<Quiz>> create(@RequestBody QuizRequestDTO quizRequestDTO) {
         return quizService.create(quizRequestDTO);
     }
+
+//    @PostMapping("/import/{quizId}")
+//    public ResponseEntity<ApiResponse<Void>> importQuestions(@RequestParam("file") MultipartFile multipartFile,
+//                                                             @RequestHeader("X-userId") UUID userId) {
+//        return quizService.importQuestions(multipartFile, userId);
+//    }
 
     @PutMapping("")
     public ResponseEntity<ApiResponse<Quiz>> update(@RequestBody QuizRequestDTO quizRequestDTO) {

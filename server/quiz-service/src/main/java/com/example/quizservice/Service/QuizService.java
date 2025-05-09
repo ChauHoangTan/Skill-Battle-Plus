@@ -6,13 +6,13 @@ import com.example.quizservice.Repository.QuizRepository;
 import com.example.quizservice.Response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,7 @@ import java.util.UUID;
 public class QuizService {
 
     final private QuizRepository quizRepository;
+    final private WebClient webClient = WebClient.builder().baseUrl("http://localhost:8083/questions").build();
 
     public ResponseEntity<ApiResponse<List<Quiz>>> getAll() {
         try {
@@ -39,7 +40,7 @@ public class QuizService {
                     HttpStatus.OK
             );
         } catch (Exception e) {
-            log.error("Failed to retrieve quizzes!");
+            log.error("Failed to retrieve quizzes!", e);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
@@ -57,7 +58,7 @@ public class QuizService {
         try {
             Optional<Quiz> quiz = quizRepository.findById(id);
 
-            if(quiz.isEmpty()) {
+            if (quiz.isEmpty()) {
                 return new ResponseEntity<>(
                         new ApiResponse<>(
                                 false,
@@ -83,7 +84,7 @@ public class QuizService {
                     HttpStatus.OK
             );
         } catch (Exception e) {
-            log.error("Failed to retrieve quiz!");
+            log.error("Failed to retrieve quiz!", e);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
@@ -99,11 +100,27 @@ public class QuizService {
 
     public ResponseEntity<ApiResponse<Quiz>> create(QuizRequestDTO quizRequestDTO) {
         try {
+            List<UUID> questionsID = new ArrayList<>(quizRequestDTO.getOldQuestions());
+
+            List<UUID> newQuestions = Collections.emptyList();
+            if (quizRequestDTO.getNewQuestions() != null && !quizRequestDTO.getNewQuestions().isEmpty()) {
+                newQuestions = webClient
+                        .post()
+                        .uri("/create-list")
+                        .bodyValue(quizRequestDTO.getNewQuestions())
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<List<UUID>>() {})
+                        .block();
+            }
+
+            assert newQuestions != null;
+            questionsID.addAll(newQuestions);
+
             Quiz quiz = Quiz.builder()
                     .title(quizRequestDTO.getTitle())
                     .description(quizRequestDTO.getDescription())
                     .difficulty(quizRequestDTO.getDifficulty())
-                    .questions(quizRequestDTO.getQuestions())
+                    .questions(questionsID)
                     .build();
 
             Quiz quizSaved = quizRepository.save(quiz);
@@ -122,7 +139,7 @@ public class QuizService {
                     HttpStatus.OK
             );
         } catch (Exception e) {
-            log.error("Failed to save quiz!");
+            log.error("Failed to save quiz!", e);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
@@ -138,12 +155,28 @@ public class QuizService {
 
     public ResponseEntity<ApiResponse<Quiz>> update(QuizRequestDTO quizRequestDTO) {
         try {
+            List<UUID> questionsID = new ArrayList<>(quizRequestDTO.getOldQuestions());
+
+            List<UUID> newQuestions = Collections.emptyList();
+            if (quizRequestDTO.getNewQuestions() != null && !quizRequestDTO.getNewQuestions().isEmpty()) {
+                newQuestions = webClient
+                        .post()
+                        .uri("/create-list")
+                        .bodyValue(quizRequestDTO.getNewQuestions())
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<List<UUID>>() {})
+                        .block();
+            }
+
+            assert newQuestions != null;
+            questionsID.addAll(newQuestions);
+
             Quiz quiz = Quiz.builder()
                     .id(quizRequestDTO.getId())
                     .title(quizRequestDTO.getTitle())
                     .description(quizRequestDTO.getDescription())
                     .difficulty(quizRequestDTO.getDifficulty())
-                    .questions(quizRequestDTO.getQuestions())
+                    .questions(questionsID)
                     .build();
 
             Quiz quizSaved = quizRepository.save(quiz);
@@ -162,7 +195,7 @@ public class QuizService {
                     HttpStatus.OK
             );
         } catch (Exception e) {
-            log.error("Failed to update quiz!");
+            log.error("Failed to update quiz!", e);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
@@ -195,7 +228,7 @@ public class QuizService {
             );
 
         } catch (Exception e) {
-            log.error("Failed to delete quiz!");
+            log.error("Failed to delete quiz!", e);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(

@@ -1,8 +1,8 @@
-package com.example.questionservice.DTO;
+package com.example.quizservice.DTO;
 
-import com.example.questionservice.Enum.QuestionType;
-import com.example.questionservice.Enum.Visibility;
-import com.example.questionservice.Model.Tag;
+import com.example.quizservice.Enum.QuestionType;
+import com.example.quizservice.Enum.Visibility;
+import com.example.quizservice.Model.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +22,6 @@ public class QuestionDTO {
     private QuestionType questionType;
     private Visibility visibility;
 
-    private List<AnswerOptionDTO> options;
     private List<Tag> tags;
+    private List<AnswerOptionDTO> options;
 }
