@@ -40,7 +40,7 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
         WHERE
             to_tsvector('english', q.description || ' ' || q.title  || ' ' || t.name ) @@ plainto_tsquery('english', :keyword)
         ORDER BY
-            q.id, rank
+            q.id
     """,
     countQuery = """
         SELECT COUNT(*)

@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -116,6 +117,7 @@ public class QuizService {
         }
     }
 
+    @Transactional
     public ResponseEntity<ApiResponse<Quiz>> create(QuizRequestDTO quizRequestDTO, String username,
                                                     String roles, String userId) {
         try {
@@ -143,29 +145,26 @@ public class QuizService {
 
             List<UUID> resultNewQuestions = Collections.emptyList();
             if (questionDTOListWithQuizId != null && !questionDTOListWithQuizId.isEmpty()) {
-                ApiResponse<List<UUID>> response = webClient
-                        .post()
-                        .uri("/create-list")
-                        .header("X-username", username)
-                        .header("X-roles", roles)
-                        .header("X-userId", userId)
-                        .bodyValue(questionDTOListWithQuizId)
-                        .retrieve()
-                        .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<UUID>>>() {})
-                        .block();
+                try {
+                    ApiResponse<List<UUID>> response = webClient
+                            .post()
+                            .uri("/create-list")
+                            .header("X-username", username)
+                            .header("X-roles", roles)
+                            .header("X-userId", userId)
+                            .bodyValue(questionDTOListWithQuizId)
+                            .retrieve()
+                            .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<UUID>>>() {})
+                            .block();
 
-                if (response == null || !response.isSuccess()) {
-                    // Rollback quiz
-                    quizRepository.deleteById(finalQuizSaved.getId());
-                    return ResponseEntity.internalServerError().body(new ApiResponse<>(
-                            false,
-                            "Failed to create questions. Quiz rolled back.",
-                            null,
-                            HttpStatus.INTERNAL_SERVER_ERROR
-                    ));
+                    if (response == null || !response.isSuccess()) {
+                        throw new RuntimeException("Failed to create questions via API");
+                    }
+
+                    resultNewQuestions = response.getData();
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed when calling question service", e);
                 }
-
-                resultNewQuestions = response.getData();
             }
 
             assert resultNewQuestions != null;
@@ -190,15 +189,7 @@ public class QuizService {
         } catch (Exception e) {
             log.error("Failed to save quiz!", e);
 
-            return new ResponseEntity<>(
-                    new ApiResponse<>(
-                            false,
-                            "Failed to save quiz!",
-                            null,
-                            HttpStatus.INTERNAL_SERVER_ERROR
-                    ),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
+            throw new RuntimeException("Failed to save quiz!", e);
         }
     }
 
@@ -311,9 +302,9 @@ public class QuizService {
                             true,
                             "Search quizzes successfully!",
                             finalPage,
-                            HttpStatus.INTERNAL_SERVER_ERROR
+                            HttpStatus.OK
                     ),
-                    HttpStatus.INTERNAL_SERVER_ERROR
+                    HttpStatus.OK
             );
         } catch (Exception e) {
             return new ResponseEntity<>(
