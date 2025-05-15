@@ -13,8 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExamQuizDTO {
-    @Id
-    @GeneratedValue
     private UUID id;
 
     private Exam exam;

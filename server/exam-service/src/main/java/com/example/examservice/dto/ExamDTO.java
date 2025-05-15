@@ -27,9 +27,6 @@ public class ExamDTO {
 
     private List<ExamQuizDTO> examQuizzes;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
     private int duration;
 
     private Visibility visibility;

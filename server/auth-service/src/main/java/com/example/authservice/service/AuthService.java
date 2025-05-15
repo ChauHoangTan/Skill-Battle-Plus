@@ -26,14 +26,14 @@ import java.util.*;
 public class AuthService {
 
     final Logger logger = LoggerFactory.getLogger(AuthService.class);
-    private final final AuthRepository authRepository;
-    private final final RoleRepository roleRepository;
-    private final final AuthenticationManager authenticationManager;
-    private final final JWTUtils jwtUtils;
-    private final final WebClient wcUserService;
-    private final final RefreshTokenService refreshTokenService;
-    private final final NotificationProducer notificationProducer;
-    private final final OtpService otpService;
+    private final AuthRepository authRepository;
+    private final RoleRepository roleRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtils jwtUtils;
+    private final WebClient wcUserService;
+    private final RefreshTokenService refreshTokenService;
+    private final NotificationProducer notificationProducer;
+    private final OtpService otpService;
 
     @Autowired
     public AuthService(AuthRepository authRepository,

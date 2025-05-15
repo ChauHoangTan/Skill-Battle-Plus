@@ -454,4 +454,7 @@ public class QuizService {
             );
         }
     }
+
+    @Transactional
+    public ResponseEntity<ApiResponse<>>
 }

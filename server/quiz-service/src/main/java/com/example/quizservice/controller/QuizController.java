@@ -1,6 +1,7 @@
 package com.example.quizservice.controller;
 
 import com.example.quizservice.dto.QuizRequestDTO;
+import com.example.quizservice.dto.SubmitQuizAnswerDTO;
 import com.example.quizservice.model.Quiz;
 import com.example.quizservice.response.ApiResponse;
 import com.example.quizservice.service.QuizService;
@@ -50,6 +51,18 @@ public class QuizController {
                                                              @PathVariable("quizId") UUID quizId,
                                                              @RequestHeader("X-userId") UUID userId) {
         return quizService.importQuestions(multipartFile, quizId, userId);
+    }
+
+    @PostMapping("/{quizId}/submit/")
+    public ResponseEntity<ApiResponse<SubmitQuizAnswerDTO>> submitQuiz(@PathVariable("quizId") UUID quizId,
+                                                                       @RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO) {
+        return quizService.submitQuiz(quizId, submitQuizAnswerDTO);
+    }
+
+    @PostMapping("/{quizId}/evaluate")
+    public ResponseEntity<ApiResponse<SubmitQuizAnswerDTO>> evaluateQuiz(@PathVariable("quizId") UUID quizId,
+                                                                         @RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO) {
+        return quizService.evaluateQuiz(quizId, submitQuizAnswerDTO);
     }
 
     @PutMapping("")

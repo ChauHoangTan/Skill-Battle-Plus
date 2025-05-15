@@ -4,7 +4,7 @@ import com.example.examservice.dto.ExamDTO;
 import com.example.examservice.dto.SubmitExamRequestDTO;
 import com.example.examservice.model.ExamResult;
 import com.example.examservice.response.ApiResponse;
-import com.example.examservice.Service.ExamService;
+import com.example.examservice.service.ExamService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
