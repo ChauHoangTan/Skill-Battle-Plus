@@ -1,6 +1,8 @@
 package com.example.questionservice.controller;
 
 import com.example.questionservice.dto.QuestionDTO;
+import com.example.questionservice.dto.QuestionResultDTO;
+import com.example.questionservice.dto.SubmitQuestionAnswerDTO;
 import com.example.questionservice.enums.QuestionType;
 import com.example.questionservice.enums.Visibility;
 import com.example.questionservice.model.Question;
@@ -72,6 +74,11 @@ public class QuestionController {
     public ResponseEntity<ApiResponse<List<UUID>>> importQuestions(@RequestParam("file") MultipartFile file,
                                                                    @RequestHeader("X-userId") UUID userId) {
         return questionService.importQuestions(file, userId);
+    }
+
+    @PostMapping("/evaluate")
+    public ResponseEntity<ApiResponse<QuestionResultDTO>> evaluateQuestion(@RequestBody SubmitQuestionAnswerDTO submitQuestionAnswerDTO) {
+        return questionService.evaluateQuestion(submitQuestionAnswerDTO);
     }
 
     @PutMapping("/{id}")

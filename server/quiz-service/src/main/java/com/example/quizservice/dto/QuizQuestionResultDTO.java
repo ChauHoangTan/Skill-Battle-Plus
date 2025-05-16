@@ -1,9 +1,10 @@
 package com.example.quizservice.dto;
 
-import com.example.examservice.model.QuizResultDTO;
+import com.example.quizservice.dto.QuizResultDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -12,13 +13,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class QuizQuestionResultDTO {
-    private QuizResultDTO quizResult;
-
     private UUID questionId;
 
-    private String userAnswer;
+    private List<UUID> userAnswer;
 
-    private String correctAnswer;
+    private List<UUID> correctAnswer;
 
     private Boolean isCorrect;
 

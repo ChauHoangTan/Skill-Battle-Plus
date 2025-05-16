@@ -1,8 +1,6 @@
 package com.example.questionservice.service;
 
-import com.example.questionservice.dto.AnswerOptionDTO;
-import com.example.questionservice.dto.QuestionCsvDTO;
-import com.example.questionservice.dto.QuestionDTO;
+import com.example.questionservice.dto.*;
 import com.example.questionservice.enums.QuestionType;
 import com.example.questionservice.enums.Visibility;
 import com.example.questionservice.model.AnswerOption;
@@ -491,6 +489,60 @@ public class QuestionService {
                           HttpStatus.INTERNAL_SERVER_ERROR
                   ),
                   HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    public ResponseEntity<ApiResponse<QuestionResultDTO>> evaluateQuestion(SubmitQuestionAnswerDTO submitQuestionAnswerDTO) {
+        try {
+            Optional<Question> question = questionRepository.findById(submitQuestionAnswerDTO.getQuestionId());
+
+            if(question.isEmpty()) {
+                log.error("Error Get Question!");
+                return new ResponseEntity<>(
+                        new ApiResponse<>(
+                                false,
+                                "Error Get Question!",
+                                null,
+                                HttpStatus.INTERNAL_SERVER_ERROR
+                        ), HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+
+            List<UUID> userAnswers = submitQuestionAnswerDTO.getSelectedOptionIds();
+
+            QuestionResultDTO questionResult = new QuestionResultDTO();
+            List<UUID> correctAnswers = questionRepository.findCorrectAnswersByQuestionId(submitQuestionAnswerDTO.getQuestionId());
+
+            questionResult.setQuestionId(submitQuestionAnswerDTO.getQuestionId());
+            questionResult.setUserAnswer(submitQuestionAnswerDTO.getSelectedOptionIds());
+            questionResult.setCorrectAnswer(correctAnswers);
+
+            Boolean isCorrect = new HashSet<>(userAnswers).equals(new HashSet<>(correctAnswers));
+
+            questionResult.setIsCorrect(isCorrect);
+            questionResult.setScore(isCorrect ? 1 : 0);
+
+            log.info("Evaluate Question Successfully!");
+
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            true,
+                            "Evaluate Question Successfully!",
+                            questionResult,
+                            HttpStatus.OK
+                    ), HttpStatus.OK
+            );
+
+        } catch (Exception e) {
+            log.error("Error Evaluate Question!", e);
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            false,
+                            "Error Evaluate Question!",
+                            null,
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    ), HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
     }

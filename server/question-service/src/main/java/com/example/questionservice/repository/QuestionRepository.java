@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -62,4 +63,11 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
             nativeQuery = true)
     Page<Question> searchByFuzzyMatch(@Param("keyword") String keyword, Pageable pageable);
 
+    @Query(value = """
+        SELECT ao.id
+        FROM answer_option ao
+        WHERE ao.is_correct = true
+        AND ao.question_id = :questionId
+    """, nativeQuery = true)
+    List<UUID> findCorrectAnswersByQuestionId(@Param("questionId") UUID questionId);
 }

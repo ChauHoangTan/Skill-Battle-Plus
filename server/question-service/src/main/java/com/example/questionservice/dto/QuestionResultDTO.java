@@ -1,7 +1,5 @@
-package com.example.examservice.dto;
+package com.example.questionservice.dto;
 
-import com.example.examservice.model.ExamQuizResult;
-import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
@@ -12,9 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ExamQuizQuestionResultDTO {
-    private ExamQuizResult examQuizResult;
-
+public class QuestionResultDTO {
     private UUID questionId;
 
     private List<UUID> userAnswer;

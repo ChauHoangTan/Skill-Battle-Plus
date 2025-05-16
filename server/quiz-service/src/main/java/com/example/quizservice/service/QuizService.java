@@ -1,14 +1,14 @@
 package com.example.quizservice.service;
 
-import com.example.quizservice.dto.AnswerOptionDTO;
-import com.example.quizservice.dto.QuestionCsvDTO;
-import com.example.quizservice.dto.QuestionDTO;
-import com.example.quizservice.dto.QuizRequestDTO;
+import com.example.quizservice.dto.*;
 import com.example.quizservice.enums.QuestionType;
 import com.example.quizservice.enums.Visibility;
 import com.example.quizservice.model.Quiz;
+import com.example.quizservice.model.QuizQuestionResult;
+import com.example.quizservice.model.QuizResult;
 import com.example.quizservice.model.Tag;
 import com.example.quizservice.repository.QuizRepository;
+import com.example.quizservice.repository.QuizResultRepository;
 import com.example.quizservice.repository.TagRepository;
 import com.example.quizservice.response.ApiResponse;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -16,6 +16,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -40,8 +41,11 @@ public class QuizService {
 
     private final QuizRepository quizRepository;
     private final TagRepository tagRepository;
+    private final QuizResultRepository quizResultRepository;
     private final WebClient webClient = WebClient.builder().baseUrl("http://localhost:8083/questions").build();
     private static final String CREATE_LIST_URI = "create-list";
+    private static final String EVALUATE_QUESTION_URI = "evaluate";
+    private final ModelMapper modelMapper = new ModelMapper();
 
     public ResponseEntity<ApiResponse<Page<Quiz>>> getAll(int limit, int pageNumber) {
         try {
@@ -456,5 +460,130 @@ public class QuizService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<>>
+    public ResponseEntity<ApiResponse<QuizResultDTO>> submitQuiz(SubmitQuizAnswerDTO submitQuizAnswerDTO,
+                                                                 UUID userId,
+                                                                 String roles,
+                                                                 String username) {
+        try {
+            QuizResultDTO quizResultDTO = new QuizResultDTO();
+            quizResultDTO.setQuizId(submitQuizAnswerDTO.getQuizId());
+            quizResultDTO.setScore(0);
+
+            List<QuizQuestionResultDTO> listQuestion = new ArrayList<>();
+
+            for(SubmitQuestionAnswerDTO questionAnswerDTO : submitQuizAnswerDTO.getQuestionAnswers()) {
+                ApiResponse<QuizQuestionResultDTO> response = webClient.post()
+                        .uri(EVALUATE_QUESTION_URI)
+                        .header("X-userId", String.valueOf(userId))
+                        .header("X-roles", roles)
+                        .header("X-username", username)
+                        .bodyValue(questionAnswerDTO)
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<ApiResponse<QuizQuestionResultDTO>>() {})
+                        .block();
+
+                if (response == null || response.getData() == null) {
+                    throw new IllegalStateException("Invalid response from question-service when evaluating question.");
+                }
+
+                quizResultDTO.setScore(quizResultDTO.getScore() + response.getData().getScore());
+                listQuestion.add(response.getData());
+            }
+
+            quizResultDTO.setQuestionsResult(listQuestion);
+
+            QuizResult quizResult = new QuizResult();
+            quizResult.setQuizId(quizResultDTO.getQuizId());
+            quizResult.setScore(quizResultDTO.getScore());
+
+            List<QuizQuestionResult> questionResults = quizResultDTO.getQuestionsResult()
+                            .stream()
+                            .map(quizQuestionResultDTO -> {
+                                QuizQuestionResult result = modelMapper.map(quizQuestionResultDTO, QuizQuestionResult.class);
+                                result.setQuizResult(quizResult);
+                                return result;
+                            })
+                            .toList();
+
+            quizResult.setQuestionResults(questionResults);
+
+            quizResultRepository.save(quizResult);
+
+            log.info("Submit Quiz Successfully!");
+
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            true,
+                            "Submit Quiz Successfully!",
+                            quizResultDTO,
+                            HttpStatus.OK
+                    ), HttpStatus.OK
+            );
+        } catch (Exception e) {
+            log.error("Error Submit Quiz!", e);
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            false,
+                            "Error Submit Quiz!",
+                            null,
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    ), HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    public ResponseEntity<ApiResponse<QuizResultDTO>> evaluateQuiz(SubmitQuizAnswerDTO submitQuizAnswerDTO,
+                                                                   UUID userId,
+                                                                   String roles,
+                                                                   String username) {
+        try {
+            QuizResultDTO quizResultDTO = new QuizResultDTO();
+            quizResultDTO.setQuizId(submitQuizAnswerDTO.getQuizId());
+            quizResultDTO.setScore(0);
+
+            List<QuizQuestionResultDTO> listQuestion = new ArrayList<>();
+
+            for(SubmitQuestionAnswerDTO questionAnswerDTO : submitQuizAnswerDTO.getQuestionAnswers()) {
+                ApiResponse<QuizQuestionResultDTO> response = webClient.post()
+                        .uri(EVALUATE_QUESTION_URI)
+                        .header("X-userId", String.valueOf(userId))
+                        .header("X-roles", roles)
+                        .header("X-username", username)
+                        .bodyValue(questionAnswerDTO)
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<ApiResponse<QuizQuestionResultDTO>>() {})
+                        .block();
+
+                if (response == null || response.getData() == null) {
+                    throw new IllegalStateException("Invalid response from question-service when evaluating question.");
+                }
+
+                quizResultDTO.setScore(quizResultDTO.getScore() + response.getData().getScore());
+                listQuestion.add(response.getData());
+            }
+
+            quizResultDTO.setQuestionsResult(listQuestion);
+
+            log.info("Submit Quiz Successfully!");
+
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            true,
+                            "Submit Quiz Successfully!",
+                            quizResultDTO,
+                            HttpStatus.OK
+                    ), HttpStatus.OK
+            );
+        } catch (Exception e) {
+            log.error("Error Evaluate Quiz!", e);
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            false,
+                            "Error Evaluate Quiz!",
+                            null,
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    ), HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }

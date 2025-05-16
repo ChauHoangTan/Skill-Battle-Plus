@@ -1,6 +1,7 @@
 package com.example.examservice.controller;
 
 import com.example.examservice.dto.ExamDTO;
+import com.example.examservice.dto.ExamResultDTO;
 import com.example.examservice.dto.SubmitExamRequestDTO;
 import com.example.examservice.model.ExamResult;
 import com.example.examservice.response.ApiResponse;
@@ -46,7 +47,10 @@ public class ExamController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<ApiResponse<ExamResult>> submitExam(@RequestBody SubmitExamRequestDTO submitExamRequestDTO) {
-        return examService.submitExam(submitExamRequestDTO);
+    public ResponseEntity<ApiResponse<ExamResultDTO>> submitExam(@RequestBody SubmitExamRequestDTO submitExamRequestDTO,
+                                                                 @RequestHeader("X-userId") UUID userId,
+                                                                 @RequestHeader("X-roles") String roles,
+                                                                 @RequestHeader("X-username") String username) {
+        return examService.submitExam(submitExamRequestDTO, userId, roles, username);
     }
 }

@@ -19,9 +19,9 @@ public class QuizResultDTO {
 
     private int score;
 
-    private LocalDateTime startedAt;
+    private LocalDateTime startAt;
 
     private LocalDateTime submittedAt;
 
-    private List<ExamQuizQuestionResultDTO> questionsResult;
+    private List<QuizQuestionResultDTO> questionsResult;
 }

@@ -19,6 +19,8 @@ public class ExamResultDTO {
 
     private int totalScore;
 
+    private int userScore;
+
     private LocalDateTime startedAt;
 
     private LocalDateTime submittedAt;

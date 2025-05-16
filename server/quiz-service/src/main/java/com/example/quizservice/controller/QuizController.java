@@ -1,6 +1,7 @@
 package com.example.quizservice.controller;
 
 import com.example.quizservice.dto.QuizRequestDTO;
+import com.example.quizservice.dto.QuizResultDTO;
 import com.example.quizservice.dto.SubmitQuizAnswerDTO;
 import com.example.quizservice.model.Quiz;
 import com.example.quizservice.response.ApiResponse;
@@ -53,16 +54,20 @@ public class QuizController {
         return quizService.importQuestions(multipartFile, quizId, userId);
     }
 
-    @PostMapping("/{quizId}/submit/")
-    public ResponseEntity<ApiResponse<SubmitQuizAnswerDTO>> submitQuiz(@PathVariable("quizId") UUID quizId,
-                                                                       @RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO) {
-        return quizService.submitQuiz(quizId, submitQuizAnswerDTO);
+    @PostMapping("/submit/")
+    public ResponseEntity<ApiResponse<QuizResultDTO>> submitQuiz(@RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO,
+                                                                 @RequestHeader("X-userId") UUID userId,
+                                                                 @RequestHeader("X-roles") String roles,
+                                                                 @RequestHeader("X-username") String username) {
+        return quizService.submitQuiz(submitQuizAnswerDTO, userId, roles, username);
     }
 
-    @PostMapping("/{quizId}/evaluate")
-    public ResponseEntity<ApiResponse<SubmitQuizAnswerDTO>> evaluateQuiz(@PathVariable("quizId") UUID quizId,
-                                                                         @RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO) {
-        return quizService.evaluateQuiz(quizId, submitQuizAnswerDTO);
+    @PostMapping("/evaluate")
+    public ResponseEntity<ApiResponse<QuizResultDTO>> evaluateQuiz(@RequestBody SubmitQuizAnswerDTO submitQuizAnswerDTO,
+                                                                   @RequestHeader("X-userId") UUID userId,
+                                                                   @RequestHeader("X-roles") String roles,
+                                                                   @RequestHeader("X-username") String username) {
+        return quizService.evaluateQuiz(submitQuizAnswerDTO, userId, roles, username);
     }
 
     @PutMapping("")
