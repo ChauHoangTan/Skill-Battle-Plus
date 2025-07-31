@@ -3,6 +3,12 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="eureka-service (2)" />
+      </profile>
       <profile name="Annotation profile for microservices-server" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -22,6 +28,10 @@
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="eureka-service" target="1.5" />
+      <module name="eureka-service (3)" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -30,6 +40,9 @@
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="battle-service" options="-parameters" />
+      <module name="eureka-service" options="-parameters" />
+      <module name="eureka-service (2)" options="-parameters" />
+      <module name="eureka-service (3)" options="-parameters" />
       <module name="exam-service" options="-parameters" />
       <module name="notification-service" options="-parameters" />
       <module name="question-service" options="-parameters" />
