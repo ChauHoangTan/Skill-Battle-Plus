@@ -31,7 +31,8 @@ public class ExamService {
 
     private final ExamRepository examRepository;
     private final ModelMapper modelMapper;
-    private final WebClient webClient = WebClient.builder().baseUrl("http://localhost:8085/exams").build();
+    private final WebClient.Builder webClientBuilder;
+    private final String EXAM_SERVICE_BASE_URL = "http://exam-service/exams";
     private static final String EVALUATE_QUIZ_URI = "/evaluate";
 
     public ResponseEntity<ApiResponse<Page<ExamDTO>>> getAllExams(int limit, int pageNumber) {
@@ -254,8 +255,9 @@ public class ExamService {
             List<ExamQuizResultDTO> listExamQuizResultDTO = new ArrayList<>();
 
             for(SubmitQuizAnswerDTO submitQuizAnswerDTO : submitExamRequestDTO.getQuizResults()) {
-                ApiResponse<ExamQuizResultDTO> response = webClient.post()
-                        .uri(EVALUATE_QUIZ_URI)
+                ApiResponse<ExamQuizResultDTO> response = webClientBuilder.build()
+                        .post()
+                        .uri(EXAM_SERVICE_BASE_URL + EVALUATE_QUIZ_URI)
                         .header("X-userId", String.valueOf(userId))
                         .header("X-roles", roles)
                         .header("X-username", username)
