@@ -22,12 +22,12 @@
         <module>api-gateway</module>
         <module>auth-service</module>
         <module>battle-service</module>
-        <module>exam-service</module>
         <module>notification-service</module>
         <module>question-service</module>
         <module>quiz-service</module>
+        <module>exam-service</module>
         <module>user-service</module>
-<!--        <module>eureka-service</module>-->
+        <module>eureka-service</module>
     </modules>
 
     <dependencyManagement>

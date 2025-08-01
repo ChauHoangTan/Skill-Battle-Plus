@@ -7,7 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="eureka-service (2)" />
+        <module name="eureka-service" />
       </profile>
       <profile name="Annotation profile for microservices-server" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -29,7 +29,6 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="eureka-service" target="1.5" />
       <module name="eureka-service (3)" target="21" />
     </bytecodeTargetLevel>
   </component>
@@ -41,7 +40,6 @@
       <module name="auth-service" options="-parameters" />
       <module name="battle-service" options="-parameters" />
       <module name="eureka-service" options="-parameters" />
-      <module name="eureka-service (2)" options="-parameters" />
       <module name="eureka-service (3)" options="-parameters" />
       <module name="exam-service" options="-parameters" />
       <module name="notification-service" options="-parameters" />
