@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\TSB\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: user-db
+  name: user-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: user-db
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\TSB\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: user-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: userdb
+            - name: POSTGRES_PASSWORD
+              value: pass
+            - name: POSTGRES_USER
+              value: user
+          image: postgres:17
+          name: user-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+      restartPolicy: Always

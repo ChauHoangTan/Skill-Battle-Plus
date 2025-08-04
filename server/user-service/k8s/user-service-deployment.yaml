@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\TSB\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: user-service
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: user-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\TSB\AppData\Local\Microsoft\WinGet\Packages\Kubernetes.kompose_Microsoft.Winget.Source_8wekyb3d8bbwe\kompose.exe convert
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: user-service
+    spec:
+      containers:
+        - env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: pass
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://user-db:5432/userdb
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_RABBITMQ_HOST
+              value: rabbitmq
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+          image: user-service
+          name: user-service
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+      restartPolicy: Always
