@@ -21,7 +21,7 @@ spec:
         io.kompose.service: api-gateway
     spec:
       containers:
-        - image: api-gateway
+        - image: chauhoangtan/api-gateway:latest
           name: api-gateway
           ports:
             - containerPort: 8080

@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://exam-db:5432/battledb
+              value: jdbc:postgresql://exam-db:5438/battledb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: battle-service
+          image: chauhoangtan/battle-service:latest
           name: battle-service
           ports:
             - containerPort: 8086

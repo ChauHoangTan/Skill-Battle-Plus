@@ -25,7 +25,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://auth-db:5432/authdb
+              value: jdbc:postgresql://auth-db:5439/authdb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
@@ -36,7 +36,7 @@ spec:
               value: redis
             - name: SPRING_REDIS_PORT
               value: "6379"
-          image: auth-service
+          image: chauhoangtan/auth-service:latest
           name: auth-service
           ports:
             - containerPort: 8087

@@ -1,3 +1,4 @@
+
 version: "3.8"
 services:
   rabbitmq:
@@ -9,8 +10,8 @@ services:
     networks:
       - backend
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -22,6 +23,7 @@ services:
     restart: unless-stopped
 
   api-gateway:
+    image: chauhoangtan/api-gateway:latest
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
@@ -42,8 +44,9 @@ services:
       - backend
 
   eureka-service:
+    image: chauhoangtan/eureka-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: eureka-service/Dockerfile
     ports:
       - "8761:8761"
@@ -51,8 +54,9 @@ services:
       - backend
 
   user-service:
+    image: chauhoangtan/user-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: user-service/Dockerfile
     ports:
       - "8081:8081"
@@ -61,28 +65,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/userdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${USER_DB_HOST}:${USER_DB_PORT}/${USER_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${USER_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   user-db:
     image: postgres:17
     container_name: user-db
     restart: always
     environment:
-      POSTGRES_DB: userdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
     ports:
       - "5433:5432"
     networks:
       - backend
 
   quiz-service:
+    image: chauhoangtan/quiz-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: quiz-service/Dockerfile
     ports:
       - "8082:8082"
@@ -91,28 +96,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://quiz-db:5432/quizdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${QUIZ_DB_HOST}:${QUIZ_DB_PORT}/${QUIZ_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${QUIZ_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${QUIZ_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   quiz-db:
     image: postgres:17
     container_name: quiz-db
     restart: always
     environment:
-      POSTGRES_DB: quizdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${QUIZ_DB_NAME}
+      POSTGRES_USER: ${QUIZ_DB_USERNAME}
+      POSTGRES_PASSWORD: ${QUIZ_DB_PASSWORD}
     ports:
       - "5434:5432"
     networks:
       - backend
 
   question-service:
+    image: chauhoangtan/question-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: question-service/Dockerfile
     ports:
       - "8083:8083"
@@ -121,28 +127,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://question-db:5432/questiondb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${QUESTION_DB_HOST}:${QUESTION_DB_PORT}/${QUESTION_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${QUESTION_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${QUESTION_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   question-db:
     image: postgres:17
     container_name: question-db
     restart: always
     environment:
-      POSTGRES_DB: questiondb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${QUESTION_DB_NAME}
+      POSTGRES_USER: ${QUESTION_DB_USERNAME}
+      POSTGRES_PASSWORD: ${QUESTION_DB_PASSWORD}
     ports:
       - "5435:5432"
     networks:
       - backend
 
   notification-service:
+    image: chauhoangtan/notification-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: notification-service/Dockerfile
     ports:
       - "8084:8084"
@@ -151,28 +158,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notificationdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NOTIFICATION_DB_HOST}:${NOTIFICATION_DB_PORT}/${NOTIFICATION_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   notification-db:
     image: postgres:17
     container_name: notification-db
     restart: always
     environment:
-      POSTGRES_DB: notificationdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+      POSTGRES_USER: ${NOTIFICATION_DB_USERNAME}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
     ports:
       - "5436:5432"
     networks:
       - backend
 
   exam-service:
+    image: chauhoangtan/exam-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: exam-service/Dockerfile
     ports:
       - "8085:8085"
@@ -181,28 +189,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/examdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${EXAM_DB_HOST}:${EXAM_DB_PORT}/${EXAM_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${EXAM_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${EXAM_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   exam-db:
     image: postgres:17
     container_name: exam-db
     restart: always
     environment:
-      POSTGRES_DB: examdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${EXAM_DB_NAME}
+      POSTGRES_USER: ${EXAM_DB_USERNAME}
+      POSTGRES_PASSWORD: ${EXAM_DB_PASSWORD}
     ports:
       - "5437:5432"
     networks:
       - backend
 
   battle-service:
+    image: chauhoangtan/battle-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: battle-service/Dockerfile
     ports:
       - "8086:8086"
@@ -211,28 +220,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://exam-db:5432/battledb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${BATTLE_DB_HOST}:${BATTLE_DB_PORT}/${BATTLE_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${BATTLE_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${BATTLE_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   battle-db:
     image: postgres:17
     container_name: battle-db
     restart: always
     environment:
-      POSTGRES_DB: battledb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${BATTLE_DB_NAME}
+      POSTGRES_USER: ${BATTLE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BATTLE_DB_PASSWORD}
     ports:
       - "5438:5432"
     networks:
       - backend
 
   auth-service:
+    image: chauhoangtan/auth-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: auth-service/Dockerfile
     ports:
       - "8087:8087"
@@ -242,26 +252,26 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/authdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${AUTH_DB_HOST}:${AUTH_DB_PORT}/${AUTH_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
+      SPRING_REDIS_HOST: ${REDIS_HOST}
+      SPRING_REDIS_PORT: ${REDIS_PORT}
 
   auth-db:
     image: postgres:17
     container_name: auth-db
     restart: always
     environment:
-      POSTGRES_DB: authdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USERNAME}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     ports:
       - "5439:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d authdb" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${AUTH_DB_USERNAME} -d ${AUTH_DB_NAME}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -269,8 +279,9 @@ services:
       - backend
 
   analytics-service:
+    image: chauhoangtan/analytics-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: analytics-service/Dockerfile
     ports:
       - "8088:8088"
@@ -279,28 +290,29 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-db:5432/analyticsdb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${ANALYTICS_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${ANALYTICS_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   analytics-db:
     image: postgres:17
     container_name: analytics-db
     restart: always
     environment:
-      POSTGRES_DB: analyticsdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${ANALYTICS_DB_NAME}
+      POSTGRES_USER: ${ANALYTICS_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ANALYTICS_DB_PASSWORD}
     ports:
       - "5440:5432"
     networks:
       - backend
 
   admin-service:
+    image: chauhoangtan/admin-service:latest
     build:
-      context: .           # context là project-root, nơi có pom.xml
+      context: .
       dockerfile: admin-service/Dockerfile
     ports:
       - "8089:8089"
@@ -309,20 +321,20 @@ services:
     networks:
       - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://analytics-db:5432/admindb
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${ADMIN_DB_HOST}:${ADMIN_DB_PORT}/${ADMIN_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${ADMIN_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${ADMIN_DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
 
   admin-db:
     image: postgres:17
     container_name: admin-db
     restart: always
     environment:
-      POSTGRES_DB: admindb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${ADMIN_DB_NAME}
+      POSTGRES_USER: ${ADMIN_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ADMIN_DB_PASSWORD}
     ports:
       - "5441:5432"
     networks:

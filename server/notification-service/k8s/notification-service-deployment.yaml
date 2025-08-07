@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://notification-db:5432/notificationdb
+              value: jdbc:postgresql://notification-db:5436/notificationdb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: notification-service
+          image: chauhoangtan/notification-service:latest
           name: notification-service
           ports:
             - containerPort: 8084

@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://question-db:5432/questiondb
+              value: jdbc:postgresql://question-db:5435/questiondb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: question-service
+          image: chauhoangtan/question-service:latest
           name: question-service
           ports:
             - containerPort: 8083

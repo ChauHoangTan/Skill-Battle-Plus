@@ -21,7 +21,7 @@ spec:
         io.kompose.service: eureka-service
     spec:
       containers:
-        - image: eureka-service
+        - image: chauhoangtan/eureka-service:latest
           name: eureka-service
           ports:
             - containerPort: 8761

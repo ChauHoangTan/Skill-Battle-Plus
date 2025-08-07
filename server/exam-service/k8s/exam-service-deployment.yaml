@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://exam-db:5432/examdb
+              value: jdbc:postgresql://exam-db:5437/examdb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: exam-service
+          image: chauhoangtan/exam-service:latest
           name: exam-service
           ports:
             - containerPort: 8085

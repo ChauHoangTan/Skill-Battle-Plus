@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://quiz-db:5432/quizdb
+              value: jdbc:postgresql://quiz-db:5434/quizdb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: quiz-service
+          image: chauhoangtan/quiz-service:latest
           name: quiz-service
           ports:
             - containerPort: 8082

@@ -25,14 +25,14 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: pass
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://analytics-db:5432/analyticsdb
+              value: jdbc:postgresql://analytics-db:5440/analyticsdb
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
-          image: analytics-service
+          image: chauhoangtan/analytics-service:latest
           name: analytics-service
           ports:
             - containerPort: 8088

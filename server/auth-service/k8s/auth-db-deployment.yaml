@@ -29,13 +29,6 @@ spec:
             - name: POSTGRES_USER
               value: user
           image: postgres:17
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready -U user -d authdb
-            failureThreshold: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
           name: auth-db
           ports:
             - containerPort: 5432
