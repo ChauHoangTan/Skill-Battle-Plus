@@ -3,6 +3,7 @@ package com.example.examservice.config;
 import com.example.examservice.filter.JWTAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,14 +36,17 @@ public class SecurityConfig {
         return httpSecurity
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .anonymous(Customizer.withDefaults())
                 .authorizeHttpRequests(
-                author -> author
-                        .requestMatchers(
-                                "/exams/swagger-ui/**",
-                                "/exams/v3/api-docs/**",
-                                "/exams/webjars/**").permitAll()
-                        .requestMatchers("/exams/**").hasRole("USER")
-                        .anyRequest().authenticated()
+                        author -> author
+                                .requestMatchers(
+                                        "/swagger-ui/**",
+                                        "/exams/v3/**","/v3/**",
+                                        "/exams/webjars/**",
+                                        "/exams/swagger-ui/**",
+                                        "/exams/swagger-ui.html").permitAll()
+                                .requestMatchers("/exams/api/**").hasRole("USER")
+                                .anyRequest().authenticated()
                 )
 //                .cors()
                 .addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

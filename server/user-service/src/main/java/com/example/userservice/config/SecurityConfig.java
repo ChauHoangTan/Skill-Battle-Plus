@@ -38,16 +38,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         author -> author
-                                .requestMatchers(HttpMethod.POST, "/users/profile").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users/api/profile").permitAll()
                                 .requestMatchers(
                                         "/swagger-ui/**",
                                         "/users/v3/**","/v3/**",
                                         "/users/webjars/**",
                                         "/users/swagger-ui/**",
                                         "/users/swagger-ui.html").permitAll()
-                                .requestMatchers("/users/profile/**").hasRole("USER")
-                                .requestMatchers("/users/settings/**").hasRole("USER")
-                                .requestMatchers("/users/friends/**").hasRole("USER")
+                                .requestMatchers("/users/api/**").hasRole("USER")
                                 .anyRequest().authenticated()
                 )
 //                .cors()

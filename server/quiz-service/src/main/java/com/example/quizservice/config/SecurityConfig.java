@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/quizzes/swagger-ui/**",
                                 "/quizzes/v3/api-docs/**",
                                 "/quizzes/webjars/**").permitAll()
-                        .requestMatchers("/quizzes/**").hasRole("USER")
+                        .requestMatchers("/quizzes/api/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
 //                .cors()

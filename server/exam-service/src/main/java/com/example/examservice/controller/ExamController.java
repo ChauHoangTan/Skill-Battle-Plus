@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/exams")
+@RequestMapping("/exams/api")
 public class ExamController {
 
     private final ExamService examService;

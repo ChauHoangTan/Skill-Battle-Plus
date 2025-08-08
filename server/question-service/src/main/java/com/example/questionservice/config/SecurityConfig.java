@@ -44,7 +44,7 @@
                                             "/questions/swagger-ui/**",
                                             "/questions/swagger-ui.html").permitAll()
                                     .requestMatchers(
-                                            "/questions/"
+                                            "/questions/api/**"
                                     ).hasRole("USER")
                                     .anyRequest().authenticated()
                     )

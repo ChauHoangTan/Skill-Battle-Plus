@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/quizzes")
+@RequestMapping("/quizzes/api")
 @RequiredArgsConstructor
 public class QuizController {
 

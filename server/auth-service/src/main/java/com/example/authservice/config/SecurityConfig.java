@@ -59,7 +59,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         author -> author
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/swagger-ui/**"
+                        ).permitAll()
                         .anyRequest().permitAll()
                 )
 //                .oauth2Login()

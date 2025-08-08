@@ -23,6 +23,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String roles = request.getHeader("X-roles");
         log.info("doFilterInternal username: {}", username);
         log.info("doFilterInternal roles: {}", roles);
+        log.info("URL: {}", request.getRequestURL());
 
         if (username != null && roles != null) {
             List<SimpleGrantedAuthority> authorities = Arrays.stream(roles.split(","))
