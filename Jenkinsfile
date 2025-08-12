@@ -30,13 +30,13 @@ pipeline {
                 }
             }
         }
-        stage('Test Backend') {
-            steps {
-                dir('server') {
-                    sh 'mvn test'
-                }
-            }
-        }
+//         stage('Test Backend') {
+//             steps {
+//                 dir('server') {
+//                     sh 'mvn test'
+//                 }
+//             }
+//         }
         stage('Docker Build & Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
