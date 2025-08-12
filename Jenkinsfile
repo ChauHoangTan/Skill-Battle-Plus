@@ -63,17 +63,16 @@ pipeline {
                                     passwordVariable: 'DOCKER_PASS'
                                 )
                             ]) {
-                                sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
+                            sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
 
-                                for (svc in services) {
-                                    def imageName = "${REGISTRY}/${svc.name}:latest"
-                                    sh """
-                                        cd ${svc.path}
-                                        docker build -t ${imageName} .
-                                        docker push ${imageName}
-                                    """
-                                    env["${svc.name.toUpperCase().replace('-', '_')}_IMAGE"] = imageName
-                                }
+                            for (svc in services) {
+                                def imageName = "${REGISTRY}/${svc.name}:latest"
+                                sh """
+                                    cd ${svc.path}
+                                    docker build -t ${imageName} .
+                                    docker push ${imageName}
+                                """
+                                env["${svc.name.toUpperCase().replace('-', '_')}_IMAGE"] = imageName
                             }
                         }
                     }
