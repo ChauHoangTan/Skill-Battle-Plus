@@ -12,36 +12,39 @@ pipeline {
         stage('Checkout') {
             steps {
                 withCredentials([
-                        usernamePassword(
-                            credentialsId: 'credential-for-skill-battle-plus',
-                            usernameVariable: 'GIT_USER',
-                            passwordVariable: 'GIT_PASS')
-                    ]) {
-                    git url: 'https://${GIT_USER}:${GIT_PASS}@github.com/ChauHoangTan/Skill-Battle-Plus.git',
+                    usernamePassword(
+                        credentialsId: 'credential-for-skill-battle-plus',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_PASS'
+                    )
+                ]) {
+                    git url: "https://${GIT_USER}:${GIT_PASS}@github.com/ChauHoangTan/Skill-Battle-Plus.git",
                         branch: 'main',
                         credentialsId: 'credential-for-skill-battle-plus'
                 }
             }
         }
+
         stage('Build Backend') {
             steps {
                 dir('server') {
-                    // Ensure Maven is available
                     sh "mvn clean package -DskipTests"
                 }
             }
         }
-//         stage('Test Backend') {
-//             steps {
-//                 dir('server') {
-//                     sh 'mvn test'
-//                 }
-//             }
-//         }
+
+        // stage('Test Backend') {
+        //     steps {
+        //         dir('server') {
+        //             sh 'mvn test'
+        //         }
+        //     }
+        // }
+
         stage('Docker Build & Push') {
             steps {
                 dir('server') {
-                    steps {
+                    script {
                         def services = [
                             [name: "user-service", path: "user-service"],
                             [name: "quiz-service", path: "quiz-service"],
@@ -53,16 +56,16 @@ pipeline {
                             [name: "auth-service", path: "auth-service"],
                             [name: "api-gateway", path: "api-gateway"],
                             [name: "analytics-service", path: "analytics-service"],
-                            [name: "admin-service", path: "admin-service"],
+                            [name: "admin-service", path: "admin-service"]
                         ]
 
                         withCredentials([
                             usernamePassword(
-                                    credentialsId: 'docker-credentials-for-skill-battle-plus',
-                                    usernameVariable: 'DOCKER_USER',
-                                    passwordVariable: 'DOCKER_PASS'
-                                )
-                            ]) {
+                                credentialsId: 'docker-credentials-for-skill-battle-plus',
+                                usernameVariable: 'DOCKER_USER',
+                                passwordVariable: 'DOCKER_PASS'
+                            )
+                        ]) {
                             sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
 
                             for (svc in services) {
@@ -79,6 +82,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
@@ -115,6 +119,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline finished.'
