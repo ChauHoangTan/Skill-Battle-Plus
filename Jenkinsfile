@@ -57,7 +57,7 @@ pipeline {
                         ]
 
                         withCredentials([
-                            usernamePassword(])
+                            usernamePassword(
                                     credentialsId: 'docker-credentials-for-skill-battle-plus',
                                     usernameVariable: 'DOCKER_USER',
                                     passwordVariable: 'DOCKER_PASS'
