@@ -25,14 +25,14 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('backend') {
-                    sh './mvnw clean package -DskipTests'
+                    sh "mvn clean package -DskipTests"
                 }
             }
         }
         stage('Test Backend') {
             steps {
                 dir('backend') {
-                    sh './mvnw test'
+                    sh 'mvn test'
                 }
             }
         }
