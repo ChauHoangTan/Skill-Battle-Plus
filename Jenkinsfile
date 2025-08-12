@@ -25,6 +25,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('server') {
+                    // Ensure Maven is available
                     sh "mvn clean package -DskipTests"
                 }
             }
