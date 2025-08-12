@@ -4,16 +4,21 @@ pipeline {
     environment {
         MAVEN_HOME = tool 'Maven 3.8.6'
         PATH = "${env.MAVEN_HOME}/bin:${env.PATH}"
-        DOCKER_IMAGE = "your-dockerhub-username/skill-battle-plus:${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "chauhoangtan/skill-battle-plus:${env.BUILD_NUMBER}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'github-credentials-id', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                    git url: 'https://github.com/ChauHoangTan/Skill-Battle-Plus.git',
+                withCredentials([
+                        usernamePassword(
+                            credentialsId: 'credential-for-skill-battle-plus',
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_PASS')
+                    ]) {
+                    git url: 'https://${GIT_USER}:${GIT_PASS}@github.com/ChauHoangTan/Skill-Battle-Plus.git',
                         branch: 'main',
-                        credentialsId: 'github-credentials-id'
+                        credentialsId: 'credential-for-skill-battle-plus'
                 }
             }
         }
