@@ -39,7 +39,13 @@ pipeline {
 //         }
         stage('Docker Build & Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([
+                        usernamePassword(
+                            credentialsId: 'docker-credentials-for-skill-battle-plus',
+                            usernameVariable: 'DOCKER_USER',
+                            passwordVariable: 'DOCKER_PASS'
+                        )
+                     ]) {
                     sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
                     sh "docker build -t $DOCKER_IMAGE ."
                     sh "docker push $DOCKER_IMAGE"
@@ -48,8 +54,14 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-credentials-id', variable: 'KUBECONFIG')]) {
-                    sh "kubectl --kubeconfig=$KUBECONFIG set image deployment/skill-battle-plus skill-battle-plus=$DOCKER_IMAGE"
+                withCredentials([
+                        file(
+                            credentialsId: 'kubeconfig-credentials-id',
+                            variable: 'KUBECONFIG'
+                        )
+                    ]) {
+//                     sh "kubectl --kubeconfig=$KUBECONFIG set image deployment/skill-battle-plus skill-battle-plus=$DOCKER_IMAGE"
+                        sh "kubectl --kubeconfig=$KUBECONFIG get pods"
                 }
             }
         }
