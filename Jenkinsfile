@@ -44,7 +44,7 @@ pipeline {
         stage('Docker Build & Push') {
             agent {
                 docker {
-                    image 'jenkins/jenkins:lts'
+                    image 'docker:24'
                     args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
                 }
             }
