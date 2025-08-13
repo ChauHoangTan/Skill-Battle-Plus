@@ -73,8 +73,7 @@ pipeline {
                             for (svc in services) {
                                 def imageName = "${REGISTRY}/${svc.name}:latest"
                                 sh """
-                                    cd ${svc.path}
-                                    docker build -t ${imageName} .
+                                    docker build -t ${imageName} -f ${svc.path}/Dockerfile .
                                     docker push ${imageName}
                                 """
                                 env["${svc.name.toUpperCase().replace('-', '_')}_IMAGE"] = imageName
