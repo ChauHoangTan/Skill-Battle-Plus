@@ -41,91 +41,85 @@ pipeline {
         //     }
         // }
 
-        stage('Docker Build & Push') {
-            agent {
-                docker {
-                    image 'docker:24'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock --group-add 1001'
-                }
-            }
-
-            steps {
-                dir('server') {
-                    script {
-                        def services = [
-                            [name: "user-service", path: "user-service"],
-                            [name: "quiz-service", path: "quiz-service"],
-                            [name: "question-service", path: "question-service"],
-                            [name: "notification-service", path: "notification-service"],
-                            [name: "exam-service", path: "exam-service"],
-                            [name: "eureka-service", path: "eureka-service"],
-                            [name: "battle-service", path: "battle-service"],
-                            [name: "auth-service", path: "auth-service"],
-                            [name: "api-gateway", path: "api-gateway"],
-                            [name: "analytics-service", path: "analytics-service"],
-                            [name: "admin-service", path: "admin-service"]
-                        ]
-
-                        withCredentials([
-                            usernamePassword(
-                                credentialsId: 'docker-credentials-for-skill-battle-plus',
-                                usernameVariable: 'DOCKER_USER',
-                                passwordVariable: 'DOCKER_PASS'
-                            )
-                        ]) {
-                            sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
-
-                            for (svc in services) {
-                                def imageName = "${REGISTRY}/${svc.name}:latest"
-                                sh """
-                                    cd ${svc.path}
-                                    docker build -t ${imageName} .
-                                    docker push ${imageName}
-                                """
-                                env["${svc.name.toUpperCase().replace('-', '_')}_IMAGE"] = imageName
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    def services = [
-                        "user-service",
-                        "quiz-service",
-                        "question-service",
-                        "notification-service",
-                        "exam-service",
-                        "eureka-service",
-                        "battle-service",
-                        "auth-service",
-                        "api-gateway",
-                        "analytics-service",
-                        "admin-service"
-                    ]
-
-                    withCredentials([
-                        file(
-                            credentialsId: 'kubeconfig-credentials-id',
-                            variable: 'KUBECONFIG'
-                        )
-                    ]) {
-                        for (svc in services) {
-                            def envVarName = "${svc.toUpperCase().replace('-', '_')}_IMAGE"
-                            def imageName = env[envVarName]
-                            sh """
-                                kubectl --kubeconfig=$KUBECONFIG set image deployment/${svc} ${svc}=${imageName}
-                                kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${svc}
-                            """
-                        }
-                    }
-                }
-            }
-        }
-    }
+//         stage('Docker Build & Push') {
+//             agent any
+//             steps {
+//                 dir('server') {
+//                     script {
+//                         def services = [
+//                             [name: "user-service", path: "user-service"],
+//                             [name: "quiz-service", path: "quiz-service"],
+//                             [name: "question-service", path: "question-service"],
+//                             [name: "notification-service", path: "notification-service"],
+//                             [name: "exam-service", path: "exam-service"],
+//                             [name: "eureka-service", path: "eureka-service"],
+//                             [name: "battle-service", path: "battle-service"],
+//                             [name: "auth-service", path: "auth-service"],
+//                             [name: "api-gateway", path: "api-gateway"],
+//                             [name: "analytics-service", path: "analytics-service"],
+//                             [name: "admin-service", path: "admin-service"]
+//                         ]
+//
+//                         withCredentials([
+//                             usernamePassword(
+//                                 credentialsId: 'docker-credentials-for-skill-battle-plus',
+//                                 usernameVariable: 'DOCKER_USER',
+//                                 passwordVariable: 'DOCKER_PASS'
+//                             )
+//                         ]) {
+//                             sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
+//
+//                             for (svc in services) {
+//                                 def imageName = "${REGISTRY}/${svc.name}:latest"
+//                                 sh """
+//                                     cd ${svc.path}
+//                                     docker build -t ${imageName} .
+//                                     docker push ${imageName}
+//                                 """
+//                                 env["${svc.name.toUpperCase().replace('-', '_')}_IMAGE"] = imageName
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//
+//         stage('Deploy to Kubernetes') {
+//             steps {
+//                 script {
+//                     def services = [
+//                         "user-service",
+//                         "quiz-service",
+//                         "question-service",
+//                         "notification-service",
+//                         "exam-service",
+//                         "eureka-service",
+//                         "battle-service",
+//                         "auth-service",
+//                         "api-gateway",
+//                         "analytics-service",
+//                         "admin-service"
+//                     ]
+//
+//                     withCredentials([
+//                         file(
+//                             credentialsId: 'kubeconfig-credentials-id',
+//                             variable: 'KUBECONFIG'
+//                         )
+//                     ]) {
+//                         for (svc in services) {
+//                             def envVarName = "${svc.toUpperCase().replace('-', '_')}_IMAGE"
+//                             def imageName = env[envVarName]
+//                             sh """
+//                                 kubectl --kubeconfig=$KUBECONFIG set image deployment/${svc} ${svc}=${imageName}
+//                                 kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${svc}
+//                             """
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
     post {
         always {
