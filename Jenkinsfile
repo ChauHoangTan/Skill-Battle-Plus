@@ -18,9 +18,9 @@ pipeline {
                         passwordVariable: 'GIT_PASS'
                     )
                 ]) {
-                    git url: "https://${GIT_USER}:${GIT_PASS}@github.com/ChauHoangTan/Skill-Battle-Plus.git",
-                        branch: 'main',
-                        credentialsId: 'credential-for-skill-battle-plus'
+                    git branch: 'main',
+                        credentialsId: 'credential-for-skill-battle-plus',
+                        url: 'https://github.com/ChauHoangTan/Skill-Battle-Plus.git'
                 }
             }
         }
