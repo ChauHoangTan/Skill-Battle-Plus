@@ -42,7 +42,6 @@ pipeline {
         // }
 
         stage('Docker Build & Push') {
-            agent any
             steps {
                 dir('server') {
                     script {
@@ -67,7 +66,9 @@ pipeline {
                                 passwordVariable: 'DOCKER_PASS'
                             )
                         ]) {
-                            sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
+                            sh """
+                                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            """
 
                             for (svc in services) {
                                 def imageName = "${REGISTRY}/${svc.name}:latest"
