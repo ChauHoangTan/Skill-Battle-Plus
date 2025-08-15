@@ -132,6 +132,9 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
+            when {
+                expression { env.CHANGED_SERVICES?.trim() }
+            }
             steps {
                 script {
 //                     def services = [
