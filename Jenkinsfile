@@ -29,12 +29,16 @@ pipeline {
             steps {
                 script {
                     // get List of change files
+                    sh 'git fetch origin main'
                     def changedFiles = sh(
                         script: "git diff --name-only origin/main...HEAD",
                         returnStdout: true
-                    ).trim().split("\n")
+                    ).trim()
 
-                    echo "Changed files: ${changedFiles}"
+                    echo "Raw changed files:\n${changedFiles}" // in ra chuỗi thô
+
+                    def changedFilesList = changedFiles ? changedFiles.split("\n") : []
+                    echo "Parsed changed files: ${changedFilesList}"
 
                     // list of services
                     def services = [
