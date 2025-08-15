@@ -57,7 +57,7 @@ pipeline {
 
                     // Filter changed services
                     def changedServices = services.findAll { svc ->
-                        changedFiles.any { it.startsWith("${svc}/") }
+                        changedFiles.any { it.startsWith("server/${svc}/") }
                     }
 
                     env.CHANGED_SERVICES = changedServices.join(',')
