@@ -51,7 +51,7 @@ public class UserService {
             if(userSettings.isEmpty()) {
                 userProfileRepository.deleteById(userProfileDTO.getId());
 
-                logger.error("ERROR While Create User Settings!! {}", userProfile);
+                logger.error("ERROR While Creating User Settings!! {}", userProfile);
                 return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
