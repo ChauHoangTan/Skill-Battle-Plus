@@ -28,19 +28,6 @@ pipeline {
         stage('Detect changes') {
             steps {
                 script {
-                    // get List of change files
-                    sh 'git fetch origin main'
-                    def changedFiles = sh(
-                        script: "git diff --name-only origin/main...HEAD",
-                        returnStdout: true
-                    ).trim()
-
-                    echo "Raw changed files:\n${changedFiles}" // in ra chuỗi thô
-
-                    def changedFilesList = changedFiles ? changedFiles.split("\n") : []
-                    echo "Parsed changed files: ${changedFilesList}"
-
-                    // list of services
                     def services = [
                         "user-service",
                         "quiz-service",
@@ -52,10 +39,23 @@ pipeline {
                         "auth-service",
                         "api-gateway",
                         "analytics-service",
-                        "admin-service",
+                        "admin-service"
                     ]
 
-                    // filter for changed service
+                    def changedFiles = [] as Set
+
+                    // loop into changeSets of build
+                    for (changeSet in currentBuild.changeSets) {
+                        for (entry in changeSet.items) {
+                            for (file in entry.affectedFiles) {
+                                changedFiles.add(file.path)
+                            }
+                        }
+                    }
+
+                    echo "Changed files in this build: ${changedFiles}"
+
+                    // Filter changed services
                     def changedServices = services.findAll { svc ->
                         changedFiles.any { it.startsWith("${svc}/") }
                     }
