@@ -111,8 +111,8 @@ pipeline {
                             def envVarName = "${svc.toUpperCase().replace('-', '_')}_IMAGE"
                             def imageName = env[envVarName]
                             sh """
-                                kubectl --kubeconfig=$KUBECONFIG set image deployment/${svc} ${svc}=${imageName}
-                                kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${svc}
+                                kubectl --kubeconfig=$KUBECONFIG set image deployment/${svc} ${svc}=${imageName} -n dev
+                                kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${svc} -n dev
                             """
                         }
                     }
