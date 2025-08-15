@@ -1,5 +1,6 @@
 package com.example.questionservice.controller;
 
+import com.example.questionservice.document.QuestionDocument;
 import com.example.questionservice.dto.QuestionDTO;
 import com.example.questionservice.dto.QuestionResultDTO;
 import com.example.questionservice.dto.SubmitQuestionAnswerDTO;
@@ -52,10 +53,13 @@ public class QuestionController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<Question>>> searchQuestions(@RequestParam("keyword") String keyword,
-                                                                       @RequestParam("limit") int limit,
-                                                                       @RequestParam("pageNumber") int pageNumber) {
-        return questionService.searchQuestions(keyword, limit, pageNumber);
+    public ResponseEntity<ApiResponse<Page<QuestionDocument>>> searchQuestions(@RequestParam("keyword") String keyword,
+                                                                               @RequestParam(defaultValue = "1", name = "limit") int limit,
+                                                                               @RequestParam(defaultValue = "10", name = "pageNumber") int pageNumber,
+                                                                               @RequestParam(required = false) List<String> tags,
+                                                                               @RequestParam(required = false) QuestionType questionType,
+                                                                               @RequestParam(required = false) Visibility visibility){
+        return questionService.searchQuestions(keyword, limit, pageNumber, tags, questionType, visibility);
     }
 
     @PostMapping()

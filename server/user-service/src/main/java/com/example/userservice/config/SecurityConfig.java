@@ -38,13 +38,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         author -> author
-                                .requestMatchers(HttpMethod.POST, "/users/api/profile").permitAll()
                                 .requestMatchers(
                                         "/swagger-ui/**",
                                         "/users/v3/**","/v3/**",
                                         "/users/webjars/**",
                                         "/users/swagger-ui/**",
                                         "/users/swagger-ui.html").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users/api/profile").permitAll()
                                 .requestMatchers("/users/api/**").hasRole("USER")
                                 .anyRequest().authenticated()
                 )

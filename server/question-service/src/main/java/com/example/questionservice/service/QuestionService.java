@@ -1,5 +1,8 @@
 package com.example.questionservice.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.util.ObjectBuilder;
+import com.example.questionservice.document.QuestionDocument;
 import com.example.questionservice.dto.*;
 import com.example.questionservice.enums.QuestionType;
 import com.example.questionservice.enums.Visibility;
@@ -7,6 +10,7 @@ import com.example.questionservice.model.AnswerOption;
 import com.example.questionservice.model.Question;
 import com.example.questionservice.model.Tag;
 import com.example.questionservice.repository.QuestionRepository;
+import com.example.questionservice.repository.QuestionSearchRepository;
 import com.example.questionservice.repository.TagRepository;
 import com.example.questionservice.response.ApiResponse;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -14,13 +18,16 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.modelmapper.ModelMapper;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,6 +41,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +51,8 @@ import java.util.*;
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
+    private final QuestionSearchRepository questionSearchRepository;
+    private final ElasticsearchOperations elasticsearchOperations;
     private final TagRepository tagRepository;
     private final CsvService csvService;
     private final ModelMapper mapper;
@@ -450,31 +462,54 @@ public class QuestionService {
         }
     }
 
-    public ResponseEntity<ApiResponse<Page<Question>>> searchQuestions(String keyword, int limit, int pageNumber) {
+    public ResponseEntity<ApiResponse<Page<QuestionDocument>>> searchQuestions(String keyword,
+                                                                               int limit,
+                                                                               int pageNumber,
+                                                                               List<String> tags,
+                                                                               QuestionType questionType,
+                                                                               Visibility visibility) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber, limit);
-            Page<Question> ftsPage = questionRepository.searchByFTS(keyword, pageable);
+            Pageable pageable = PageRequest.of(pageNumber - 1, limit, Sort.by(Sort.Direction.DESC, "content"));
+            Page<QuestionDocument> searchResults;
 
-            List<Question> combinedResults = new ArrayList<>(ftsPage.getContent());
+            if(questionType == null && visibility == null) {
+                searchResults = questionSearchRepository.findByContentContainingAndTagsIn(keyword, tags, pageable);
+            } else {
+                BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+                        .must(QueryBuilders.matchQuery("content", keyword))
+                        .should(QueryBuilders.termsQuery("tags", tags));
 
-            // Nếu ko có phần tử trong FTS thì tiếp tục lấy dữ liệu từ fuzzy match
-            if (!ftsPage.hasContent()) {
-                Pageable fuzzyPageable = PageRequest.of(0, limit);
-                Page<Question> fuzzyPage = questionRepository.searchByFuzzyMatch(keyword, fuzzyPageable);
+                if(questionType != null) {
+                    boolQuery.filter(QueryBuilders.termQuery("questionType", questionType.name()));
+                }
+                if(visibility != null) {
+                    boolQuery.filter(QueryBuilders.termQuery("visibility", visibility.name()));
+                }
 
-                // Thêm kết quả từ fuzzy match vào danh sách kết hợp
-                combinedResults.addAll(fuzzyPage.getContent());
+                NativeQuery query = NativeQuery.builder()
+                        .withQuery(q -> q.bool(b -> {
+                            b.must((Query) boolQuery.must());
+                            b.filter((Query) boolQuery.filter());
+                            return b;
+                        }))
+                        .withPageable(pageable)
+                        .build();
+
+                SearchHits<QuestionDocument> searchHits = elasticsearchOperations.search(query, QuestionDocument.class);
+                searchResults = new PageImpl<>(
+                        searchHits.stream().map(SearchHit::getContent).toList(),
+                        pageable,
+                        searchHits.getTotalHits()
+                );
             }
 
-            // Tạo Page mới từ danh sách kết hợp
-            Page<Question> finalPage = new PageImpl<>(combinedResults, pageable, combinedResults.size());
             log.info("Search questions successfully!");
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
                             true,
                             "Search questions successfully!",
-                            finalPage,
+                            searchResults,
                             HttpStatus.OK
                     ),
                     HttpStatus.OK

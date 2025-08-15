@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/profile")
+@RequestMapping("/users/api/profile")
 public class UserController {
     private final UserService userService;
 

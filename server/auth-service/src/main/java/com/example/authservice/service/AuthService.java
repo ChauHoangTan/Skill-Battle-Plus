@@ -278,7 +278,7 @@ public class AuthService {
 
             this.wcUserService
                     .post()
-                    .uri("/profile")
+                    .uri("/api/profile")
                     .bodyValue(userProfileDTO)
                     .retrieve()
                     .bodyToMono(Void.class)

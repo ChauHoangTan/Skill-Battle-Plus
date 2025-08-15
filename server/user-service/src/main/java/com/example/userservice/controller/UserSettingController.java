@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/settings")
+@RequestMapping("/users/api/settings")
 public class UserSettingController {
 
     private final UserSettingService userSettingService;
