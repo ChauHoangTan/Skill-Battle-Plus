@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,4 +42,18 @@ public class Question {
 
     @Column(nullable = false)
     private UUID createdBy;
+
+    private Date createdAt;
+    private Date updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = new Date();
+    }
 }

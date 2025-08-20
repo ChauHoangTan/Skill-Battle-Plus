@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="eureka-service" />
+        <module name="elasticsearch" />
       </profile>
       <profile name="Annotation profile for microservices-server" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -39,6 +40,7 @@
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="battle-service" options="-parameters" />
+      <module name="elasticsearch" options="-parameters" />
       <module name="eureka-service" options="-parameters" />
       <module name="eureka-service (3)" options="-parameters" />
       <module name="exam-service" options="-parameters" />

@@ -1,7 +1,9 @@
 package com.example.questionservice.service;
 
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.util.ObjectBuilder;
+import com.example.questionservice.config.MessageQueueConfig;
 import com.example.questionservice.document.QuestionDocument;
 import com.example.questionservice.dto.*;
 import com.example.questionservice.enums.QuestionType;
@@ -9,11 +11,13 @@ import com.example.questionservice.enums.Visibility;
 import com.example.questionservice.model.AnswerOption;
 import com.example.questionservice.model.Question;
 import com.example.questionservice.model.Tag;
+import com.example.questionservice.producer.QuestionProducer;
 import com.example.questionservice.repository.QuestionRepository;
 import com.example.questionservice.repository.QuestionSearchRepository;
 import com.example.questionservice.repository.TagRepository;
 import com.example.questionservice.response.ApiResponse;
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +60,9 @@ public class QuestionService {
     private final TagRepository tagRepository;
     private final CsvService csvService;
     private final ModelMapper mapper;
+    private final ObjectMapper objectMapper;
+    private final QuestionProducer producer;
+
     public ResponseEntity<ApiResponse<Page<Question>>> getAll(int limit, int pageNumber) {
         try {
             Pageable pageable = PageRequest.of(limit, pageNumber);
@@ -123,6 +130,7 @@ public class QuestionService {
             question.setContent(questionDTO.getContent());
             question.setQuestionType(questionDTO.getQuestionType());
             question.setCreatedBy(userId);
+            question.setVisibility(questionDTO.getVisibility());
 
             List<AnswerOption> answerOptions = questionDTO.getOptions().stream()
                     .map(dto -> {
@@ -137,6 +145,13 @@ public class QuestionService {
             question.setOptions(answerOptions);
 
             Question questionSaved = questionRepository.save(question);
+
+            // Send to message queue to insert into Elasticsearch
+            questionDTO.setId(questionSaved.getId());
+            producer.sendQuestionMessage(
+                    MessageQueueConfig.ROUTING_KEY_QUESTION_CREATE,
+                    questionDTO
+            );
 
             ApiResponse<Question> response = new ApiResponse<>(
                     true,
@@ -184,7 +199,14 @@ public class QuestionService {
 
         question.setOptions(answerOptions);
 
-        return questionRepository.save(question).getId();
+        // Save to DB first
+        Question saved = questionRepository.save(question);
+
+        // Then send to message queue
+        questionDTO.setId(saved.getId());
+        producer.sendQuestionMessage(MessageQueueConfig.ROUTING_KEY_QUESTION_UPDATE, questionDTO);
+
+        return saved.getId();
     }
 
     @Transactional
@@ -246,6 +268,12 @@ public class QuestionService {
 
             Question questionSaved = questionRepository.save(question);
 
+            // Send to message queue to update in Elasticsearch
+            producer.sendQuestionMessage(
+                    MessageQueueConfig.ROUTING_KEY_QUESTION_UPDATE,
+                    questionDTO
+            );
+
             ApiResponse<Question> response = new ApiResponse<>(
                     true,
                     "Updating question success!",
@@ -280,9 +308,15 @@ public class QuestionService {
         try {
             questionRepository.deleteById(id);
 
+            // Send to message queue to delete from Elasticsearch
+            producer.sendQuestionMessage(
+                    MessageQueueConfig.ROUTING_KEY_QUESTION_DELETE,
+                    new QuestionDTO(id, null, null, null, null, null, null)
+            );
+
             ApiResponse<Void> response = new ApiResponse<>(
                     true,
-                    "Updating question success!",
+                    "Delete question success!",
                     null,
                     HttpStatus.OK
             );
@@ -397,6 +431,13 @@ public class QuestionService {
                 question.setTags(questionDTO.getTags());
 
                 questionRepository.save(question);
+
+                // Send to message queue for create in Elasticsearch
+                producer.sendQuestionMessage(
+                        MessageQueueConfig.ROUTING_KEY_QUESTION_CREATE,
+                        questionDTO
+                );
+
                 return question.getId();
             }).toList();
 
@@ -469,33 +510,50 @@ public class QuestionService {
                                                                                QuestionType questionType,
                                                                                Visibility visibility) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, limit, Sort.by(Sort.Direction.DESC, "content"));
+            Pageable pageable = PageRequest.of(pageNumber - 1, limit);
             Page<QuestionDocument> searchResults;
 
             if(questionType == null && visibility == null) {
                 searchResults = questionSearchRepository.findByContentContainingAndTagsIn(keyword, tags, pageable);
             } else {
-                BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
-                        .must(QueryBuilders.matchQuery("content", keyword))
-                        .should(QueryBuilders.termsQuery("tags", tags));
-
-                if(questionType != null) {
-                    boolQuery.filter(QueryBuilders.termQuery("questionType", questionType.name()));
-                }
-                if(visibility != null) {
-                    boolQuery.filter(QueryBuilders.termQuery("visibility", visibility.name()));
-                }
+                List<FieldValue> fieldTags = tags.stream()
+                                                    .map(FieldValue::of)
+                                                    .toList();
 
                 NativeQuery query = NativeQuery.builder()
                         .withQuery(q -> q.bool(b -> {
-                            b.must((Query) boolQuery.must());
-                            b.filter((Query) boolQuery.filter());
+                            // must: content match
+                            b.must(m -> m.match(mt -> mt.field("content").query(keyword)));
+
+                            // should: tags terms
+                            if (!tags.isEmpty()) {
+                                b.should(s -> s.terms(t -> t.field("tags").terms(v -> v.value(fieldTags))));
+                            }
+
+                            // filter: questionType
+                            if (questionType != null) {
+                                b.filter(f -> f.term(t -> t.field("questionType").value(questionType.name())));
+                            }
+
+                            // filter: visibility
+                            if (visibility != null) {
+                                b.filter(f -> f.term(t -> t.field("visibility").value(visibility.name())));
+                            }
+
                             return b;
                         }))
                         .withPageable(pageable)
                         .build();
 
+                String dsl = objectMapper
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(query.getQuery().toString());
+
+                log.info("ElasticSearch DSL:\n{}", dsl);
+
                 SearchHits<QuestionDocument> searchHits = elasticsearchOperations.search(query, QuestionDocument.class);
+                log.info("Hits: {}", searchHits.getSearchHits());
+
                 searchResults = new PageImpl<>(
                         searchHits.stream().map(SearchHit::getContent).toList(),
                         pageable,
@@ -504,6 +562,7 @@ public class QuestionService {
             }
 
             log.info("Search questions successfully!");
+            log.info("Search Result: {}", searchResults);
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
