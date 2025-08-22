@@ -1,5 +1,8 @@
 package com.example.quizservice.service;
 
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import com.example.quizservice.Difficulty;
+import com.example.quizservice.document.QuizDocument;
 import com.example.quizservice.dto.*;
 import com.example.quizservice.enums.QuestionType;
 import com.example.quizservice.enums.Visibility;
@@ -9,6 +12,7 @@ import com.example.quizservice.model.QuizResult;
 import com.example.quizservice.model.Tag;
 import com.example.quizservice.repository.QuizRepository;
 import com.example.quizservice.repository.QuizResultRepository;
+import com.example.quizservice.repository.QuizSearchRepository;
 import com.example.quizservice.repository.TagRepository;
 import com.example.quizservice.response.ApiResponse;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -22,6 +26,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,6 +50,8 @@ public class QuizService {
     private final QuizRepository quizRepository;
     private final TagRepository tagRepository;
     private final QuizResultRepository quizResultRepository;
+    private final QuizSearchRepository quizSearchRepository;
+    private final ElasticsearchOperations elasticsearchOperations;
     private final WebClient webClient = WebClient.builder().baseUrl("http://localhost:8083/questions").build();
     private static final String CREATE_LIST_URI = "create-list";
     private static final String EVALUATE_QUESTION_URI = "evaluate";
@@ -290,26 +300,77 @@ public class QuizService {
         }
     }
 
-    public ResponseEntity<ApiResponse<Page<Quiz>>> searchQuizzes(String keyword, int limit, int pageNumber) {
+    public ResponseEntity<ApiResponse<Page<QuizDocument>>> searchQuizzes(String keyword,
+                                                                 List<String> tags,
+                                                                 Visibility visibility,
+                                                                 Difficulty difficulty,
+                                                                 int limit,
+                                                                 int pageNumber) {
         try {
             Pageable pageable = PageRequest.of(pageNumber, limit);
-            Page<Quiz> quizzesFTS = quizRepository.searchByFTS(keyword, pageable);
+            Page<QuizDocument> searchResults;
 
-            List<Quiz> combinedResults = new ArrayList<>(quizzesFTS.getContent());
-
-            if(!quizzesFTS.hasContent()) {
-                Pageable pageableFuzzy = PageRequest.of(0, limit);
-                Page<Quiz> quizzesFuzzy = quizRepository.searchByFuzzyMatch(keyword, pageableFuzzy);
-                combinedResults.addAll(quizzesFuzzy.getContent());
+            if(tags.isEmpty() && visibility == null && difficulty == null) {
+                searchResults = quizSearchRepository.findByTitleContainingOrDescriptionContaining(keyword, keyword, pageable);
+                return new ResponseEntity<>(
+                        new ApiResponse<>(
+                                true,
+                                "Search quizzes successfully!",
+                                searchResults,
+                                HttpStatus.OK
+                        ),
+                        HttpStatus.OK
+                );
             }
 
-            Page<Quiz> finalPage = new PageImpl<>(combinedResults, pageable, combinedResults.size());
+            List<FieldValue> fieldTags = tags.stream()
+                    .map(FieldValue::of)
+                    .toList();
+
+            NativeQuery query = NativeQuery.builder()
+                    .withQuery(q -> q.bool(
+                            b -> {
+                                b.must(m -> m.match(
+                                        mt -> mt.field("title").query(keyword)));
+                                b.should(m -> m.match(
+                                        mt -> mt.field("description").query(keyword)));
+                                if (!tags.isEmpty()) {
+                                    b.should(s -> s.terms(
+                                            t -> t.field("tags").terms(
+                                                    v -> v.value(fieldTags)
+                                            )
+                                    ));
+                                }
+                                if (visibility != null && !visibility.name().isEmpty()) {
+                                    b.filter(f -> f.term(
+                                            t -> t.field("visibility").value(visibility.name())
+                                    ));
+                                }
+                                if (difficulty != null && !difficulty.name().isEmpty()) {
+                                    b.filter(f -> f.term(
+                                            t -> t.field("difficulty").value(difficulty.name())
+                                    ));
+                                }
+                                return b;
+                            }
+                    ))
+                    .withPageable(pageable)
+                    .build();
+
+            SearchHits<QuizDocument> searchHits = elasticsearchOperations.search(query, QuizDocument.class);
+            log.info("Search Hits: {}", searchHits.getTotalHits());
+
+            searchResults = new PageImpl<>(
+                    searchHits.stream().map(SearchHit::getContent).toList(),
+                    pageable,
+                    searchHits.getTotalHits()
+            );
 
             return new ResponseEntity<>(
                     new ApiResponse<>(
                             true,
                             "Search quizzes successfully!",
-                            finalPage,
+                            searchResults,
                             HttpStatus.OK
                     ),
                     HttpStatus.OK

@@ -1,8 +1,11 @@
 package com.example.quizservice.controller;
 
+import com.example.quizservice.Difficulty;
+import com.example.quizservice.document.QuizDocument;
 import com.example.quizservice.dto.QuizRequestDTO;
 import com.example.quizservice.dto.QuizResultDTO;
 import com.example.quizservice.dto.SubmitQuizAnswerDTO;
+import com.example.quizservice.enums.Visibility;
 import com.example.quizservice.model.Quiz;
 import com.example.quizservice.response.ApiResponse;
 import com.example.quizservice.service.QuizService;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,10 +37,13 @@ public class QuizController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<Quiz>>> searchQuizzes(@RequestParam("keyword") String keyword,
-                                                                 @RequestParam("limit") int limit,
-                                                                 @RequestParam("pageNumber") int pageNumber) {
-        return quizService.searchQuizzes(keyword, limit, pageNumber);
+    public ResponseEntity<ApiResponse<Page<QuizDocument>>> searchQuizzes(@RequestParam("keyword") String keyword,
+                                                                         @RequestParam(required = false, name = "tags") List<String> tags,
+                                                                         @RequestParam(required = false, name = "visibility") Visibility visibility,
+                                                                         @RequestParam(required = false, name = "difficulty") Difficulty difficulty,
+                                                                         @RequestParam("limit") int limit,
+                                                                         @RequestParam("pageNumber") int pageNumber) {
+        return quizService.searchQuizzes(keyword, tags, visibility, difficulty, limit, pageNumber);
     }
 
     @PostMapping("")

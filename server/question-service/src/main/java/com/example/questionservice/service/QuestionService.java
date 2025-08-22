@@ -517,8 +517,8 @@ public class QuestionService {
                 searchResults = questionSearchRepository.findByContentContainingAndTagsIn(keyword, tags, pageable);
             } else {
                 List<FieldValue> fieldTags = tags.stream()
-                                                    .map(FieldValue::of)
-                                                    .toList();
+                                                .map(FieldValue::of)
+                                                .toList();
 
                 NativeQuery query = NativeQuery.builder()
                         .withQuery(q -> q.bool(b -> {
@@ -544,12 +544,6 @@ public class QuestionService {
                         }))
                         .withPageable(pageable)
                         .build();
-
-                String dsl = objectMapper
-                        .writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(query.getQuery().toString());
-
-                log.info("ElasticSearch DSL:\n{}", dsl);
 
                 SearchHits<QuestionDocument> searchHits = elasticsearchOperations.search(query, QuestionDocument.class);
                 log.info("Hits: {}", searchHits.getSearchHits());

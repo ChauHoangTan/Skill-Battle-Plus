@@ -18,7 +18,6 @@ public class MessageQueueConfig {
     public static final String ROUTING_KEY_QUESTION_UPDATE = "question.update";
     public static final String ROUTING_KEY_QUESTION_DELETE = "question.delete";
     public static final String ROUTING_KEY_QUESTION_FAILED = "question.failed";
-    public static final String ROUTING_KEY_QUESTION_DLX = "question.dlx";
 
     // Exchange
     @Bean
@@ -46,7 +45,7 @@ public class MessageQueueConfig {
     public Queue retryQueue() {
         Map<String, Object> args = new HashMap<>();
         // TTL for retry after 5 seconds
-        args.put("x-message-ttl", 15000);
+        args.put("x-message-ttl", 5000);
         // Back to the main queue after delay times
         args.put("x-dead-letter-exchange", QUESTION_EXCHANGE);
         args.put("x-dead-letter-routing-key", QUESTION_QUEUE);

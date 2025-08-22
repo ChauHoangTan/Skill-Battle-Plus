@@ -56,9 +56,9 @@ public class QuestionController {
     public ResponseEntity<ApiResponse<Page<QuestionDocument>>> searchQuestions(@RequestParam("keyword") String keyword,
                                                                                @RequestParam(defaultValue = "1", name = "limit") int limit,
                                                                                @RequestParam(defaultValue = "10", name = "pageNumber") int pageNumber,
-                                                                               @RequestParam(required = false) List<String> tags,
-                                                                               @RequestParam(required = false) QuestionType questionType,
-                                                                               @RequestParam(required = false) Visibility visibility){
+                                                                               @RequestParam(required = false, name = "tags") List<String> tags,
+                                                                               @RequestParam(required = false, name = "questionType") QuestionType questionType,
+                                                                               @RequestParam(required = false, name = "visibility") Visibility visibility){
         return questionService.searchQuestions(keyword, limit, pageNumber, tags, questionType, visibility);
     }
 
