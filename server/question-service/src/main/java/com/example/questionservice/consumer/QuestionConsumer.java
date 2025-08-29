@@ -65,12 +65,15 @@ public class QuestionConsumer {
                         message
                 );
             } else {
+                String originalRoutingKey = (String) message.getMessageProperties().getHeaders()
+                        .getOrDefault("x-original-routing-key", message.getMessageProperties().getReceivedRoutingKey());
                 rabbitTemplate.send(
                         MessageQueueConfig.QUESTION_EXCHANGE,
                         MessageQueueConfig.QUESTION_QUEUE,
                         MessageBuilder.withBody(message.getBody())
                                 .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                                 .setHeader("x-retry-count", count)
+                                .setHeader("x-original-routing-key", originalRoutingKey)
                                 .build()
                 );
             }

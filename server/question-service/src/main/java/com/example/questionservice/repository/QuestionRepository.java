@@ -70,4 +70,6 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
         AND ao.question_id = :questionId
     """, nativeQuery = true)
     List<UUID> findCorrectAnswersByQuestionId(@Param("questionId") UUID questionId);
+
+    List<Question> findByQuizId(UUID quizId);
 }

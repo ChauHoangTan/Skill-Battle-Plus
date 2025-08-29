@@ -68,6 +68,7 @@ public class QuizConsumer {
                         MessageBuilder.withBody(message.getBody())
                                 .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                                 .setHeader("x-retry-count", count)
+                                .setHeader("x-original-routing-key", originalRoutingKey)
                                 .build()
                 );
             }

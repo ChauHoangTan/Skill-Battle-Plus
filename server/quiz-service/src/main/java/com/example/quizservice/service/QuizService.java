@@ -2,6 +2,7 @@ package com.example.quizservice.service;
 
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import com.example.quizservice.Difficulty;
+import com.example.quizservice.config.MessageQueueConfig;
 import com.example.quizservice.document.QuizDocument;
 import com.example.quizservice.dto.*;
 import com.example.quizservice.enums.QuestionType;
@@ -10,6 +11,7 @@ import com.example.quizservice.model.Quiz;
 import com.example.quizservice.model.QuizQuestionResult;
 import com.example.quizservice.model.QuizResult;
 import com.example.quizservice.model.Tag;
+import com.example.quizservice.producer.QuizProducer;
 import com.example.quizservice.repository.QuizRepository;
 import com.example.quizservice.repository.QuizResultRepository;
 import com.example.quizservice.repository.QuizSearchRepository;
@@ -52,7 +54,9 @@ public class QuizService {
     private final QuizResultRepository quizResultRepository;
     private final QuizSearchRepository quizSearchRepository;
     private final ElasticsearchOperations elasticsearchOperations;
+    private final QuizProducer quizProducer;
     private final WebClient webClient = WebClient.builder().baseUrl("http://localhost:8083/questions").build();
+    private static final String GET_LIST_QUESTION_URI = "list-questions";
     private static final String CREATE_LIST_URI = "create-list";
     private static final String EVALUATE_QUESTION_URI = "evaluate";
     private final ModelMapper modelMapper = new ModelMapper();
@@ -134,6 +138,40 @@ public class QuizService {
         }
     }
 
+    public ResponseEntity<ApiResponse<List<QuestionDTO>>> getQuestionsByQuizId(UUID quizId) {
+        try {
+            ApiResponse<List<QuestionDTO>> response = webClient
+                    .post()
+                    .uri(GET_LIST_QUESTION_URI)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<QuestionDTO>>>() {})
+                    .block();
+
+            if (response == null || !response.isSuccess()) {
+                throw new RuntimeException("Failed to fetch questions via API");
+            }
+
+            log.info("Get Questions by Quiz ID Successfully!");
+
+            return new ResponseEntity<>(
+                    response,
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            log.error("Failed to retrieve questions for quiz!", e);
+
+            return new ResponseEntity<>(
+                    new ApiResponse<>(
+                            false,
+                            "Failed to retrieve questions for quiz!",
+                            null,
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                    ),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
     @Transactional
     public ResponseEntity<ApiResponse<Quiz>> create(QuizRequestDTO quizRequestDTO, String username,
                                                     String roles, String userId) {
@@ -151,17 +189,17 @@ public class QuizService {
 
             Quiz quizSaved = quizRepository.save(quiz);
 
-//          Set quiz id for questions
-            Quiz finalQuizSaved = quizSaved;
+            // Set quiz id for questions
             List<QuestionDTO> questionDTOListWithQuizId = quizRequestDTO.getNewQuestions()
                     .stream()
-                    .peek(questionDTO -> questionDTO.setQuizId(finalQuizSaved.getId()))
+                    .peek(questionDTO -> questionDTO.setQuizId(quizSaved.getId()))
                     .toList();
 
-            log.info("questionDTOListWithQuizId", questionDTOListWithQuizId.toString());
+            log.info("questionDTOListWithQuizId: {}", questionDTOListWithQuizId.toString());
 
+            // Create questions via question-service API
             List<UUID> resultNewQuestions = Collections.emptyList();
-            if (questionDTOListWithQuizId != null && !questionDTOListWithQuizId.isEmpty()) {
+            if (!questionDTOListWithQuizId.isEmpty()) {
 
                 ApiResponse<List<UUID>> response = webClient
                         .post()
@@ -185,13 +223,17 @@ public class QuizService {
             assert resultNewQuestions != null;
             questionsID.addAll(resultNewQuestions);
 
-            finalQuizSaved.setQuestions(questionsID);
-            quizRepository.save(quiz);
+            quizSaved.setQuestions(questionsID);
+            quizRepository.save(quizSaved);
+
+            // Index to Elasticsearch
+            QuizDTO quizDTO = modelMapper.map(quizSaved, QuizDTO.class);
+            quizProducer.sendQuizMessage(MessageQueueConfig.ROUTING_KEY_QUIZ_CREATE, quizDTO);
 
             ApiResponse<Quiz> response = new ApiResponse<>(
                     true,
                     "Create Quiz Successfully!",
-                    finalQuizSaved,
+                    quizSaved,
                     HttpStatus.OK
             );
 
@@ -237,6 +279,10 @@ public class QuizService {
 
             Quiz quizSaved = quizRepository.save(quiz);
 
+            // Update in Elasticsearch
+            QuizDTO quizDTO = modelMapper.map(quizSaved, QuizDTO.class);
+            quizProducer.sendQuizMessage(MessageQueueConfig.ROUTING_KEY_QUIZ_UPDATE, quizDTO);
+
             ApiResponse<Quiz> response = new ApiResponse<>(
                     true,
                     "Update Quiz Successfully!",
@@ -277,6 +323,9 @@ public class QuizService {
                     null,
                     HttpStatus.OK
             );
+
+            // Delete in Elasticsearch
+            quizSearchRepository.deleteById(String.valueOf(id));
 
             log.info("Delete Quiz Successfully!");
 

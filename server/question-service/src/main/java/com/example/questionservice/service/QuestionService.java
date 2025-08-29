@@ -124,6 +124,43 @@ public class QuestionService {
         }
     }
 
+    public ResponseEntity<ApiResponse<List<QuestionDTO>>> getQuestionsByQuizId(UUID quizId) {
+        try {
+            List<Question> questions = questionRepository.findByQuizId(quizId);
+            List<QuestionDTO> questionDTOs = questions.stream()
+                    .map(question -> mapper.map(question, QuestionDTO.class))
+                    .toList();
+
+            ApiResponse<List<QuestionDTO>> response = new ApiResponse<List<QuestionDTO>>(
+                    true,
+                    "Get questions by quizId success!",
+                    questionDTOs,
+                    HttpStatus.OK
+            );
+
+            log.info("Get questions by quizId success! {}", quizId);
+
+            return new ResponseEntity<>(
+                    response,
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            log.error("Error get questions by quizId: {}", quizId);
+
+            ApiResponse<List<QuestionDTO>> response = new ApiResponse<>(
+                    false,
+                    "Failed to get questions by quizId!",
+                    null,
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+
+            return new ResponseEntity<>(
+                    response,
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
     public ResponseEntity<ApiResponse<Question>> create(QuestionDTO questionDTO, UUID userId) {
         try {
             Question question = new Question();

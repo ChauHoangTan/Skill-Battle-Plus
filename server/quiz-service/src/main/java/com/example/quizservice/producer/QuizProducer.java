@@ -1,7 +1,7 @@
-package com.example.questionservice.producer;
+package com.example.quizservice.producer;
 
-import com.example.questionservice.config.MessageQueueConfig;
-import com.example.questionservice.dto.QuestionDTO;
+import com.example.quizservice.config.MessageQueueConfig;
+import com.example.quizservice.dto.QuizDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,15 +11,17 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class QuestionProducer {
+public class QuizProducer {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    public void sendQuestionMessage(String routingKey, QuestionDTO message) {
+    public void sendQuizMessage(String routingKey, QuizDTO message) {
         try {
+            log.info("Sending message to RabbitMQ with routing key {}: {}", routingKey, message);
+
             String jsonMessage = objectMapper.writeValueAsString(message);
             rabbitTemplate.convertAndSend(
-                    MessageQueueConfig.QUESTION_EXCHANGE,
+                    MessageQueueConfig.QUIZ_EXCHANGE,
                     routingKey,
                     jsonMessage,
                     m -> {
@@ -27,10 +29,8 @@ public class QuestionProducer {
                         return m;
                     }
             );
-            log.info("Sent message to routing key {}: {}", routingKey, message);
         } catch (Exception e) {
-            log.error("Failed to send message to routing key {}: {}", routingKey, e.getMessage(), e);
+            log.error("Failed to send message to RabbitMQ: {}", e.getMessage());
         }
     }
-
 }
